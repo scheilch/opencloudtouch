@@ -354,10 +354,11 @@ def test_version_falls_back_when_package_metadata_missing(monkeypatch):
     """
     monkeypatch.delenv("OCT_VERSION", raising=False)
     import opencloudtouch
-    from opencloudtouch import PackageNotFoundError, _resolve_version
 
-    with patch.object(opencloudtouch, "version", side_effect=PackageNotFoundError):
-        assert _resolve_version() == "0.0.0-unknown"
+    with patch.object(
+        opencloudtouch, "version", side_effect=opencloudtouch.PackageNotFoundError
+    ):
+        assert opencloudtouch._resolve_version() == "0.0.0-unknown"
 
 
 def test_version_ignores_blank_oct_version_override(monkeypatch):
