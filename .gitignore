@@ -22,6 +22,7 @@ htmlcov/
 build/
 
 # === Local / Personal ===
+.worktrees/
 .local/
 *.local.*
 .env
