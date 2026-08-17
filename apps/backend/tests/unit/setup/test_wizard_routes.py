@@ -386,7 +386,7 @@ class TestWizardModifyHosts:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchHostsService",
+                "opencloudtouch.setup.wizard.step6_hosts.SoundTouchHostsService",
                 return_value=mock_hosts_service,
             ),
         ):
@@ -413,7 +413,7 @@ class TestWizardModifyHosts:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchHostsService",
+                "opencloudtouch.setup.wizard.step6_hosts.SoundTouchHostsService",
                 return_value=mock_hosts_service,
             ),
         ):
@@ -443,7 +443,7 @@ class TestWizardModifyHosts:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchHostsService",
+                "opencloudtouch.setup.wizard.step6_hosts.SoundTouchHostsService",
                 return_value=mock_hosts_service,
             ),
             patch(

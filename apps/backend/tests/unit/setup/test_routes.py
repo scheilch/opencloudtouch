@@ -1114,8 +1114,8 @@ class TestWizardModifyHostsRoute:
 
     def test_modify_hosts_success(self, client, monkeypatch):
         """Successful hosts modification returns 200."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.hosts_service import ModifyResult
+        from opencloudtouch.setup.wizard import step6_hosts as routes
 
         mock_ssh = AsyncMock()
         mock_result = ModifyResult(
@@ -1146,8 +1146,8 @@ class TestWizardModifyHostsRoute:
 
     def test_modify_hosts_failure(self, client, monkeypatch):
         """Failed hosts modification returns 200 with success=False."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.hosts_service import ModifyResult
+        from opencloudtouch.setup.wizard import step6_hosts as routes
 
         mock_ssh = AsyncMock()
         mock_result = ModifyResult(success=False, error="Write failed")

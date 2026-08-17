@@ -9,7 +9,6 @@ import re
 import shlex
 import socket
 from datetime import UTC, datetime
-from urllib.parse import urlparse
 
 import httpx
 from defusedxml import ElementTree as ET
@@ -33,14 +32,17 @@ from opencloudtouch.setup.ssh_client import SoundTouchSSHClient
 from opencloudtouch.setup.wizard.step3_connectivity import Step3ConnectivityMixin
 from opencloudtouch.setup.wizard.step4_backup import Step4BackupMixin
 from opencloudtouch.setup.wizard.step5_config import Step5ConfigMixin
-from opencloudtouch.setup.wizard_helpers import snapshot_config_files, ssh_operation
+from opencloudtouch.setup.wizard.step6_hosts import Step6HostsMixin
+from opencloudtouch.setup.wizard_helpers import ssh_operation
 
 logger = logging.getLogger(__name__)
 
 _ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 
-class WizardService(Step3ConnectivityMixin, Step4BackupMixin, Step5ConfigMixin):
+class WizardService(
+    Step3ConnectivityMixin, Step4BackupMixin, Step5ConfigMixin, Step6HostsMixin
+):
     """Orchestrates the device setup wizard steps.
 
     Each method corresponds to one wizard step and handles:
@@ -55,61 +57,6 @@ class WizardService(Step3ConnectivityMixin, Step4BackupMixin, Step5ConfigMixin):
     def __init__(self, audit_repo=None, device_repo=None) -> None:
         self._audit_repo = audit_repo
         self._device_repo = device_repo
-
-    async def modify_hosts(
-        self, device_ip: str, target_addr: str, include_optional: bool = False
-    ) -> dict:
-        """Modify /etc/hosts on device.
-
-        Returns:
-            Dict with success, message, backup_path, diff
-
-        Raises:
-            ValueError: If target hostname cannot be resolved
-        """
-        parsed = urlparse(target_addr)
-        target_host = parsed.hostname or parsed.netloc
-
-        try:
-            target_ip = socket.gethostbyname(target_host)
-        except socket.gaierror:
-            raise ValueError(
-                f"Cannot resolve hostname '{target_host}' to an IP address."
-            )
-
-        async with ssh_operation(device_ip, "modify-hosts") as ssh:
-            await snapshot_config_files(
-                ssh,
-                self._audit_repo,
-                device_ip,
-                ["/etc/hosts"],
-                "before_modify_hosts",
-            )
-
-            hosts_service = SoundTouchHostsService(ssh)
-            result = await hosts_service.modify_hosts(target_ip, include_optional)
-
-            if result.success:
-                await snapshot_config_files(
-                    ssh,
-                    self._audit_repo,
-                    device_ip,
-                    ["/etc/hosts"],
-                    "after_modify_hosts",
-                )
-
-            if not result.success:
-                return {
-                    "success": False,
-                    "message": result.error or "Modification failed",
-                }
-
-            return {
-                "success": True,
-                "message": "Hosts modified successfully",
-                "backup_path": result.backup_path,
-                "diff": result.diff,
-            }
 
     async def restore_config(self, device_ip: str, backup_path: str) -> dict:
         """Restore config from backup."""

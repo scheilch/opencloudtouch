@@ -20,8 +20,6 @@ from opencloudtouch.setup.api_models import (
     EnsureAccountResponse,
     FinalizeRequest,
     FinalizeResponse,
-    HostsModifyRequest,
-    HostsModifyResponse,
     InitPersistenceRequest,
     InitPersistenceResponse,
     ListBackupsRequest,
@@ -43,6 +41,7 @@ from opencloudtouch.setup.api_models import (
 from opencloudtouch.setup.wizard.step3_connectivity import step3_router
 from opencloudtouch.setup.wizard.step4_backup import step4_router
 from opencloudtouch.setup.wizard.step5_config import step5_router
+from opencloudtouch.setup.wizard.step6_hosts import step6_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 from opencloudtouch.setup.wizard_service import WizardService
@@ -54,37 +53,7 @@ wizard_router.include_router(strategy_router)
 wizard_router.include_router(step3_router)
 wizard_router.include_router(step4_router)
 wizard_router.include_router(step5_router)
-
-
-@wizard_router.post("/wizard/modify-hosts", response_model=HostsModifyResponse)
-async def wizard_modify_hosts(
-    request: HostsModifyRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Modify /etc/hosts (Wizard Step 6)."""
-    logger.info(
-        "Modifying hosts on %s (OCT: %s)", request.device_ip, request.target_addr
-    )
-
-    try:
-        result = await wizard.modify_hosts(
-            request.device_ip, request.target_addr, request.include_optional
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=http_status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-
-    if not result["success"]:
-        return HostsModifyResponse(success=False, message=result["message"])
-
-    return HostsModifyResponse(
-        success=True,
-        message=result["message"],
-        backup_path=result.get("backup_path", ""),
-        diff=result.get("diff", ""),
-    )
+wizard_router.include_router(step6_router)
 
 
 @wizard_router.post("/wizard/restore-config", response_model=RestoreResponse)
