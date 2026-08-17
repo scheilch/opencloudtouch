@@ -2,11 +2,13 @@
 
 Method implementations live in per-step mixin files (step3_connectivity.py,
 step4_backup.py, ...) under this package; setup/wizard/service.py composes
-them into the single WizardService class used via DI. See
-docs/ARCHITECTURE.md "Setup Wizard Subsystem" for the full file map.
+them into the single WizardService class used via DI. See the setup/wizard/
+row in docs/ARCHITECTURE.md's module table.
 """
 
 from __future__ import annotations
+
+_ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 
 class WizardServiceBase:

@@ -1,12 +1,12 @@
-"""Regression tests for stale mock patches fixed during Phase 1 (010-websocket-push).
+"""Regression tests guarding against previously-fixed stale-mock and dead-code bugs.
 
-These tests ensure that wizard_service internal methods exist and behave correctly,
-preventing future regressions from refactoring that removes methods without
-updating tests.
-
-Root cause: _read_file_content was removed from wizard_service but 5 tests still
-mocked it. _apply_existing_config and _fetch_device_metadata were inlined but
-6 tests still called them as standalone methods.
+Covers build_system_config_xml's acctMode/DeviceName/AccountUUID encoding
+(root cause of the Phase 1 / 010-websocket-push incident, where several tests
+kept mocking WizardService methods that had since been inlined or removed),
+confirmation that WizardService/opencloudtouch.setup.wizard no longer expose
+_apply_existing_config, _fetch_device_metadata, _read_file_content, or the
+removed legacy list_backups/ensure_account_pairing methods, and an edge case
+of _check_config_files_identical.
 """
 
 from unittest.mock import AsyncMock

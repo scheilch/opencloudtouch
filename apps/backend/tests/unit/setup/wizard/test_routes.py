@@ -1,20 +1,10 @@
-"""Tests for setup/wizard_routes.py — SSH-driven wizard step endpoints.
+"""Integration tests for the setup/wizard/ router package (all wizard step endpoints).
 
-TDD RED phase: tests fail until setup/wizard_routes.py is created and
-`wizard_router` is mounted in main.py.
-
-Covers all 8 wizard endpoints:
-  POST /api/setup/wizard/check-ports
-  POST /api/setup/wizard/backup
-  POST /api/setup/wizard/modify-config
-  POST /api/setup/wizard/modify-hosts
-  POST /api/setup/wizard/restore-config
-  POST /api/setup/wizard/restore-hosts
-  POST /api/setup/wizard/reboot-device
-  POST /api/setup/wizard/verify-redirect
-
-(list-backups, account-pairing, ensure-account, init-persistence were
-confirmed dead and removed 2026-08-17.)
+Exercises the full wizard flow via FastAPI TestClient against the composed
+wizard router: server-info, check-ports, backup, modify-config, modify-hosts,
+restore-config, restore-hosts, reboot-device, verify-redirect, detect-strategy,
+validate-hostname, finalize, verify-setup, and complete — plus injection
+protection, SSH-unreachable (503) handling, and config-snapshot behavior.
 """
 
 import socket

@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 
@@ -15,7 +16,10 @@ step3_router = APIRouter()
 
 
 class Step3ConnectivityMixin:
-    """WizardService.check_ssh_port — see wizard_service.py:58 (pre-move)."""
+    """SSH port connectivity check (Wizard Step 3)."""
+
+    if TYPE_CHECKING:
+        SSH_TIMEOUT: float
 
     async def check_ssh_port(self, device_ip: str) -> bool:
         """Check if SSH port is accessible on device."""

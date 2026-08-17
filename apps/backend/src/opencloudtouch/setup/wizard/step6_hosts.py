@@ -2,6 +2,7 @@
 
 import logging
 import socket
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, HTTPException
@@ -18,7 +19,10 @@ step6_router = APIRouter()
 
 
 class Step6HostsMixin:
-    """WizardService.modify_hosts — see wizard_service.py:59 (pre-move)."""
+    """Redirect Bose cloud domains via /etc/hosts (Wizard Step 6)."""
+
+    if TYPE_CHECKING:
+        _audit_repo: Any
 
     async def modify_hosts(
         self, device_ip: str, target_addr: str, include_optional: bool = False

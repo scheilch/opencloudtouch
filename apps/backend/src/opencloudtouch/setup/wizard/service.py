@@ -1,7 +1,8 @@
 """Composed WizardService facade.
 
 Method bodies live in the per-step mixin files in this package; this class
-only assembles them. See docs/ARCHITECTURE.md "Setup Wizard Subsystem".
+only assembles them. See the setup/wizard/ row in docs/ARCHITECTURE.md's
+module table.
 """
 
 from opencloudtouch.setup.wizard.base import WizardServiceBase

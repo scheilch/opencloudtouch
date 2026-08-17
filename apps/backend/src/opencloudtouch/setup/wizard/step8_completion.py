@@ -2,22 +2,25 @@
 
 import logging
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter, HTTPException
 from fastapi import status as http_status
 
 from opencloudtouch.core.dependencies import WizardServiceDep
 from opencloudtouch.setup.api_models import WizardCompleteRequest, WizardCompleteResponse
+from opencloudtouch.setup.wizard.base import _ERR_DEVICE_REPO_UNAVAILABLE
 
 logger = logging.getLogger(__name__)
-
-_ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 step8_router = APIRouter()
 
 
 class Step8CompletionMixin:
-    """WizardService.mark_complete — see wizard_service.py:296 (pre-move)."""
+    """Mark device setup as complete (Wizard Step 8)."""
+
+    if TYPE_CHECKING:
+        _device_repo: Any
 
     async def mark_complete(self, device_id: str) -> dict:
         """Mark wizard setup as complete for a device."""

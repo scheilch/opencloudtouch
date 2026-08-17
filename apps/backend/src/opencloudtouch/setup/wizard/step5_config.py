@@ -1,6 +1,7 @@
 """Setup Wizard Step 5 (Config Modification) — rewrite OverrideSdkPrivateCfg.xml URLs."""
 
 import logging
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from fastapi import APIRouter
@@ -17,7 +18,10 @@ step5_router = APIRouter()
 
 
 class Step5ConfigMixin:
-    """WizardService.modify_config — see wizard_service.py:59 (pre-move)."""
+    """Rewrite OverrideSdkPrivateCfg.xml BMX URLs (Wizard Step 5)."""
+
+    if TYPE_CHECKING:
+        _audit_repo: Any
 
     async def modify_config(self, device_ip: str, target_addr: str) -> dict:
         """Modify BMX URL in device config.

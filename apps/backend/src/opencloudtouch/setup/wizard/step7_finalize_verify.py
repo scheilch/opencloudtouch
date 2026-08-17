@@ -11,7 +11,7 @@ import logging
 import re
 import shlex
 import socket
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 import httpx
 from defusedxml import ElementTree as ET
@@ -47,11 +47,10 @@ from opencloudtouch.setup.persistence_service import (
     force_write_sources_xml,
 )
 from opencloudtouch.setup.ssh_client import SoundTouchSSHClient
+from opencloudtouch.setup.wizard.base import _ERR_DEVICE_REPO_UNAVAILABLE
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 
 logger = logging.getLogger(__name__)
-
-_ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 step7_router = APIRouter()
 
@@ -59,11 +58,12 @@ step7_router = APIRouter()
 class Step7FinalizeVerifyMixin:
     """WizardService methods for Step 7 (Verification, incl. Issue #184).
 
-    See wizard_service.py:235 (reboot_device), :312 (verify_redirect),
-    :361 (finalize_device), :468 (_fetch_device_info), :505 (_verify_sys_config),
-    :556 (verify_setup), :613-885 (the 11 _check_*/_read_hosts helpers) — pre-move
-    line numbers, re-locate by method name since earlier tasks shifted them.
+    Covers device reboot, DNS redirect verification, UUID/config
+    finalization, and the 11-point post-setup verification sweep.
     """
+
+    if TYPE_CHECKING:
+        _device_repo: Any
 
     async def reboot_device(self, device_ip: str) -> dict:
         """Reboot device via SSH.

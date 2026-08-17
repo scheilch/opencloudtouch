@@ -1,4 +1,4 @@
-"""Tests for wizard_service.finalize_device() -- Issue #184."""
+"""Tests for setup/wizard/step7_finalize_verify.py's finalize_device() -- Issue #184."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 

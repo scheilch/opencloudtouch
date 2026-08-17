@@ -15,7 +15,7 @@ step4_router = APIRouter()
 
 
 class Step4BackupMixin:
-    """WizardService.backup_all — see wizard_service.py:62 (pre-move)."""
+    """Full-device backup to USB before config changes (Wizard Step 4)."""
 
     async def backup_all(self, device_ip: str, device_id: str) -> dict:
         """Create complete backup to USB stick.

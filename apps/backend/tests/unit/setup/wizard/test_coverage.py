@@ -1,9 +1,9 @@
-"""Tests for wizard_service coverage gaps.
+"""Coverage tests for WizardService's Step 7 logic (setup/wizard/step7_finalize_verify.py).
 
-Covers: _apply_existing_config, _fetch_device_metadata hardware profile branch,
-verify_setup connection failure, finalize_device edge cases (Sources.xml fail,
-existing config merge, DeviceName fallback), _verify_sys_config XML parse
-error, and various check helper error branches.
+Covers: finalize_device edge cases (Sources.xml write failure, existing-config
+merge, DeviceName fallback, unexpected exception), _verify_sys_config XML
+parse error, verify_setup connection failure, and error branches of the
+individual _check_* helper methods.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
