@@ -8,7 +8,10 @@ from fastapi import APIRouter, HTTPException
 from fastapi import status as http_status
 
 from opencloudtouch.core.dependencies import WizardServiceDep
-from opencloudtouch.setup.api_models import WizardCompleteRequest, WizardCompleteResponse
+from opencloudtouch.setup.api_models import (
+    WizardCompleteRequest,
+    WizardCompleteResponse,
+)
 from opencloudtouch.setup.wizard.base import _ERR_DEVICE_REPO_UNAVAILABLE
 
 logger = logging.getLogger(__name__)
