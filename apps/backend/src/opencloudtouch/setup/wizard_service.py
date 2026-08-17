@@ -14,7 +14,6 @@ from urllib.parse import urlparse
 import httpx
 from defusedxml import ElementTree as ET
 
-from opencloudtouch.core.config import get_config
 from opencloudtouch.setup.account_pairing_service import (
     check_marge_account_uuid,
     ensure_account_uuid,
@@ -33,6 +32,7 @@ from opencloudtouch.setup.persistence_service import (
 from opencloudtouch.setup.ssh_client import SoundTouchSSHClient
 from opencloudtouch.setup.wizard.step3_connectivity import Step3ConnectivityMixin
 from opencloudtouch.setup.wizard.step4_backup import Step4BackupMixin
+from opencloudtouch.setup.wizard.step5_config import Step5ConfigMixin
 from opencloudtouch.setup.wizard_helpers import snapshot_config_files, ssh_operation
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 _ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 
-class WizardService(Step3ConnectivityMixin, Step4BackupMixin):
+class WizardService(Step3ConnectivityMixin, Step4BackupMixin, Step5ConfigMixin):
     """Orchestrates the device setup wizard steps.
 
     Each method corresponds to one wizard step and handles:
@@ -55,53 +55,6 @@ class WizardService(Step3ConnectivityMixin, Step4BackupMixin):
     def __init__(self, audit_repo=None, device_repo=None) -> None:
         self._audit_repo = audit_repo
         self._device_repo = device_repo
-
-    async def modify_config(self, device_ip: str, target_addr: str) -> dict:
-        """Modify BMX URL in device config.
-
-        Returns:
-            Dict with success, message, backup_path, diff, old_url, new_url
-        """
-        parsed = urlparse(target_addr)
-        target_host = parsed.hostname or parsed.netloc
-        target_port = parsed.port or get_config().port
-
-        async with ssh_operation(device_ip, "modify-config") as ssh:
-            config_service = SoundTouchConfigService(ssh)
-
-            await snapshot_config_files(
-                ssh,
-                self._audit_repo,
-                device_ip,
-                config_service.CONFIG_CANDIDATES,
-                "before_modify_config",
-            )
-
-            result = await config_service.modify_bmx_url(target_host, port=target_port)
-
-            if result.success:
-                await snapshot_config_files(
-                    ssh,
-                    self._audit_repo,
-                    device_ip,
-                    config_service.CONFIG_CANDIDATES,
-                    "after_modify_config",
-                )
-
-            if not result.success:
-                return {
-                    "success": False,
-                    "message": result.error or "Modification failed",
-                }
-
-            return {
-                "success": True,
-                "message": "Config modified successfully",
-                "backup_path": result.backup_path,
-                "diff": result.diff,
-                "old_url": "https://*.bose.com (4 URLs)",
-                "new_url": target_addr,
-            }
 
     async def modify_hosts(
         self, device_ip: str, target_addr: str, include_optional: bool = False

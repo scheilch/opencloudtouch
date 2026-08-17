@@ -252,7 +252,7 @@ class TestWizardModifyConfig:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchConfigService",
+                "opencloudtouch.setup.wizard.step5_config.SoundTouchConfigService",
                 return_value=mock_config_service,
             ),
         ):
@@ -281,7 +281,7 @@ class TestWizardModifyConfig:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchConfigService",
+                "opencloudtouch.setup.wizard.step5_config.SoundTouchConfigService",
                 return_value=mock_config_service,
             ),
         ):
@@ -336,7 +336,7 @@ class TestWizardModifyConfig:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchConfigService",
+                "opencloudtouch.setup.wizard.step5_config.SoundTouchConfigService",
                 return_value=mock_config_service,
             ),
         ):

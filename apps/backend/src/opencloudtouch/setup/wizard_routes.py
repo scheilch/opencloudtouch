@@ -15,8 +15,6 @@ from opencloudtouch.core.dependencies import RestoreServiceDep, get_wizard_servi
 from opencloudtouch.setup.api_models import (
     AccountPairingRequest,
     AccountPairingResponse,
-    ConfigModifyRequest,
-    ConfigModifyResponse,
     ConnectivityCheckRequest,
     EnsureAccountRequest,
     EnsureAccountResponse,
@@ -44,6 +42,7 @@ from opencloudtouch.setup.api_models import (
 )
 from opencloudtouch.setup.wizard.step3_connectivity import step3_router
 from opencloudtouch.setup.wizard.step4_backup import step4_router
+from opencloudtouch.setup.wizard.step5_config import step5_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 from opencloudtouch.setup.wizard_service import WizardService
@@ -54,31 +53,7 @@ wizard_router = APIRouter(prefix="/api/setup", tags=["Setup Wizard"])
 wizard_router.include_router(strategy_router)
 wizard_router.include_router(step3_router)
 wizard_router.include_router(step4_router)
-
-
-@wizard_router.post("/wizard/modify-config", response_model=ConfigModifyResponse)
-async def wizard_modify_config(
-    request: ConfigModifyRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Modify OverrideSdkPrivateCfg.xml (Wizard Step 5)."""
-    logger.info(
-        "Modifying config on %s (OCT: %s)", request.device_ip, request.target_addr
-    )
-
-    result = await wizard.modify_config(request.device_ip, request.target_addr)
-
-    if not result["success"]:
-        return ConfigModifyResponse(success=False, message=result["message"])
-
-    return ConfigModifyResponse(
-        success=True,
-        message=result["message"],
-        backup_path=result.get("backup_path", ""),
-        diff=result.get("diff", ""),
-        old_url=result.get("old_url", ""),
-        new_url=result.get("new_url", ""),
-    )
+wizard_router.include_router(step5_router)
 
 
 @wizard_router.post("/wizard/modify-hosts", response_model=HostsModifyResponse)

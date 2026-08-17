@@ -947,8 +947,8 @@ class TestWizardModifyConfigRoute:
 
     def test_modify_config_success(self, client, monkeypatch):
         """Successful config modification returns 200."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.config_service import ModifyResult
+        from opencloudtouch.setup.wizard import step5_config as routes
 
         mock_ssh = AsyncMock()
         mock_result = ModifyResult(
@@ -986,8 +986,8 @@ class TestWizardModifyConfigRoute:
         target_addr (full URL with scheme+port). This caused Step 5 to show
         '192.168.1.50' instead of 'http://192.168.1.50:7777'.
         """
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.config_service import ModifyResult
+        from opencloudtouch.setup.wizard import step5_config as routes
 
         mock_ssh = AsyncMock()
         mock_result = ModifyResult(
@@ -1024,8 +1024,8 @@ class TestWizardModifyConfigRoute:
 
     def test_old_url_is_representative_not_single_domain(self, client, monkeypatch):
         """Regression: old_url should represent all 4 modified URLs, not just bmx.bose.com."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.config_service import ModifyResult
+        from opencloudtouch.setup.wizard import step5_config as routes
 
         mock_ssh = AsyncMock()
         mock_result = ModifyResult(
@@ -1063,8 +1063,8 @@ class TestWizardModifyConfigRoute:
         self, client, monkeypatch
     ):
         """Failed modification returns 200 with success=False."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.config_service import ModifyResult
+        from opencloudtouch.setup.wizard import step5_config as routes
 
         mock_ssh = AsyncMock()
         mock_result = ModifyResult(success=False, error="File not found")
