@@ -1,9 +1,9 @@
 """Tests for wizard_service coverage gaps.
 
 Covers: _apply_existing_config, _fetch_device_metadata hardware profile branch,
-ensure_account_pairing error/success paths, verify_setup connection failure,
-finalize_device edge cases (Sources.xml fail, existing config merge, DeviceName fallback),
-_verify_sys_config XML parse error, and various check helper error branches.
+verify_setup connection failure, finalize_device edge cases (Sources.xml fail,
+existing config merge, DeviceName fallback), _verify_sys_config XML parse
+error, and various check helper error branches.
 """
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -40,42 +40,9 @@ def _mock_ssh():
 # Method was removed from WizardService; tests deleted.
 
 
-# ── ensure_account_pairing ───────────────────────────────────────────
-
-
-class TestEnsureAccountPairing:
-    @pytest.mark.asyncio
-    async def test_success_with_repo_persists_uuid(self):
-        repo = _make_device_repo()
-        service = WizardService(device_repo=repo)
-
-        with patch(
-            "opencloudtouch.setup.wizard.legacy_routes.ensure_account_uuid",
-            new_callable=AsyncMock,
-            return_value=AccountPairingResult(
-                success=True, had_uuid=True, uuid="1234567", message="OK"
-            ),
-        ):
-            result = await service.ensure_account_pairing("192.168.1.10", "DEV001")
-
-        assert result["success"] is True
-        assert result["uuid"] == "1234567"
-        repo.update_marge_account_uuid.assert_called_once_with("DEV001", "1234567")
-
-    @pytest.mark.asyncio
-    async def test_exception_returns_error(self):
-        repo = _make_device_repo()
-        service = WizardService(device_repo=repo)
-
-        with patch(
-            "opencloudtouch.setup.wizard.legacy_routes.ensure_account_uuid",
-            new_callable=AsyncMock,
-            side_effect=ConnectionError("SSH timeout"),
-        ):
-            result = await service.ensure_account_pairing("192.168.1.10", "DEV001")
-
-        assert result["success"] is False
-        assert "SSH timeout" in result["error"]
+# ── ensure_account_pairing (removed in refactor, 2026-08-17) ─────────
+# Method was removed from WizardService; tests deleted. See
+# test_regression.py::TestLegacyWizardMethodsRemoved.
 
 
 # ── _fetch_device_metadata hardware profile branch ───────────────────

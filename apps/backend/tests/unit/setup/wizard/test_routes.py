@@ -3,16 +3,18 @@
 TDD RED phase: tests fail until setup/wizard_routes.py is created and
 `wizard_router` is mounted in main.py.
 
-Covers all 9 wizard endpoints:
+Covers all 8 wizard endpoints:
   POST /api/setup/wizard/check-ports
   POST /api/setup/wizard/backup
   POST /api/setup/wizard/modify-config
   POST /api/setup/wizard/modify-hosts
   POST /api/setup/wizard/restore-config
   POST /api/setup/wizard/restore-hosts
-  POST /api/setup/wizard/list-backups
   POST /api/setup/wizard/reboot-device
   POST /api/setup/wizard/verify-redirect
+
+(list-backups, account-pairing, ensure-account, init-persistence were
+confirmed dead and removed 2026-08-17.)
 """
 
 import socket
@@ -546,43 +548,9 @@ class TestWizardRestoreHosts:
         assert response.json()["success"] is True
 
 
-# ── wizard/list-backups ───────────────────────────────────────────────────────
-
-
-class TestWizardListBackups:
-    """POST /api/setup/wizard/list-backups"""
-
-    def test_lists_config_and_hosts_backups(self, client):
-        mock_config_service = MagicMock()
-        mock_config_service.list_backups = AsyncMock(return_value=["/usb/cfg1.bak"])
-        mock_hosts_service = MagicMock()
-        mock_hosts_service.list_backups = AsyncMock(return_value=["/usb/hosts1.bak"])
-
-        with (
-            patch(
-                "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
-            ) as mock_ssh,
-            patch(
-                "opencloudtouch.setup.wizard.legacy_routes.SoundTouchConfigService",
-                return_value=mock_config_service,
-            ),
-            patch(
-                "opencloudtouch.setup.wizard.legacy_routes.SoundTouchHostsService",
-                return_value=mock_hosts_service,
-            ),
-        ):
-            mock_ssh_instance = MagicMock()
-            mock_ssh.return_value.__aenter__ = AsyncMock(return_value=mock_ssh_instance)
-            mock_ssh.return_value.__aexit__ = AsyncMock(return_value=False)
-            response = client.post(
-                "/api/setup/wizard/list-backups",
-                json={"device_ip": "192.168.1.100"},
-            )
-        assert response.status_code == 200
-        body = response.json()
-        assert body["success"] is True
-        assert body["config_backups"] == ["/usb/cfg1.bak"]
-        assert body["hosts_backups"] == ["/usb/hosts1.bak"]
+# ── wizard/list-backups (endpoint removed 2026-08-17) ──────────────────────
+# Route deleted from legacy_routes.py; see test_regression.py::
+# TestLegacyWizardMethodsRemoved.
 
 
 # ── wizard/reboot-device ──────────────────────────────────────────────────────

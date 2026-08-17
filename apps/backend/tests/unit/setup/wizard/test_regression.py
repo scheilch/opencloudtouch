@@ -55,6 +55,16 @@ class TestWizardServiceRemovedMethods:
         assert not hasattr(mod, "_read_file_content")
 
 
+class TestLegacyWizardMethodsRemoved:
+    """Regression: dead pre-Restore-Wizard methods were deleted in the setup/wizard refactor."""
+
+    def test_no_list_backups(self):
+        assert not hasattr(WizardService, "list_backups")
+
+    def test_no_ensure_account_pairing(self):
+        assert not hasattr(WizardService, "ensure_account_pairing")
+
+
 class TestWizardServiceExistingMethods:
     """Regression: these internal methods MUST exist (tests mock them)."""
 

@@ -403,7 +403,6 @@ class TestOpenAPISchemaCoverage:
             "HostsModifyRequest",
             "RestoreRequest",
             "VerifyRedirectRequest",
-            "ListBackupsRequest",
         ]
         for model_name in expected:
             assert model_name in schemas, f"{model_name} missing from OpenAPI schemas"
@@ -418,7 +417,6 @@ class TestOpenAPISchemaCoverage:
             "HostsModifyResponse",
             "RestoreResponse",
             "VerifyRedirectResponse",
-            "ListBackupsResponse",
         ]
         for model_name in expected:
             assert model_name in schemas, f"{model_name} missing from OpenAPI schemas"
