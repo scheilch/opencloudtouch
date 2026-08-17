@@ -7,7 +7,7 @@ import pytest
 from opencloudtouch.setup.account_pairing_service import AccountPairingResult
 from opencloudtouch.setup.persistence_service import ForceWriteResult
 from opencloudtouch.setup.ssh_client import CommandResult
-from opencloudtouch.setup.wizard_service import WizardService
+from opencloudtouch.setup.wizard import WizardService
 
 
 def _make_device_repo(existing_uuid_owner=None):

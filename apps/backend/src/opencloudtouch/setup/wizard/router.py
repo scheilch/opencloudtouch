@@ -1,9 +1,4 @@
-"""
-Setup Wizard API Routes � Thin Handlers
-
-SSH-driven step-by-step wizard endpoints for device configuration.
-All business logic lives in WizardService; routes only handle HTTP concerns.
-"""
+"""Aggregates every wizard step's sub-router into the single public wizard_router."""
 
 from fastapi import APIRouter
 
@@ -18,6 +13,7 @@ from opencloudtouch.setup.wizard.step8_completion import step8_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 
 wizard_router = APIRouter(prefix="/api/setup", tags=["Setup Wizard"])
+
 wizard_router.include_router(strategy_router)
 wizard_router.include_router(step3_router)
 wizard_router.include_router(step4_router)

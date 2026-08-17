@@ -39,7 +39,7 @@ def openapi_live():
 @pytest.fixture
 async def client():
     """Lightweight async test client (no DB, no lifespan)."""
-    from opencloudtouch.setup.wizard_service import WizardService
+    from opencloudtouch.setup.wizard import WizardService
 
     app.state.wizard_service = WizardService()
     transport = ASGITransport(app=app)

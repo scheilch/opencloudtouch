@@ -56,8 +56,7 @@ def wizard_app():
     from opencloudtouch.core.config import clear_config
     from opencloudtouch.core.dependencies import get_wizard_service
     from opencloudtouch.core.exception_handlers import register_exception_handlers
-    from opencloudtouch.setup.wizard_routes import wizard_router
-    from opencloudtouch.setup.wizard_service import WizardService
+    from opencloudtouch.setup.wizard import WizardService, wizard_router
 
     # Ensure clean config state before importing router
     clear_config()
@@ -87,8 +86,7 @@ class TestWizardServerInfoPort:
         from fastapi.testclient import TestClient
         from opencloudtouch.core.dependencies import get_wizard_service
         from opencloudtouch.core.exception_handlers import register_exception_handlers
-        from opencloudtouch.setup.wizard_routes import wizard_router
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService, wizard_router
 
         monkeypatch.setenv("OCT_PORT", "8080")
         clear_config()  # Reload config with new port
@@ -113,8 +111,7 @@ class TestWizardServerInfoPort:
         from fastapi.testclient import TestClient
         from opencloudtouch.core.dependencies import get_wizard_service
         from opencloudtouch.core.exception_handlers import register_exception_handlers
-        from opencloudtouch.setup.wizard_routes import wizard_router
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService, wizard_router
 
         # Explicitly set OCT_PORT to DEFAULT_PORT to override any pollution
         monkeypatch.setenv("OCT_PORT", str(DEFAULT_PORT))
@@ -819,7 +816,7 @@ class TestWizardComplete:
     def client_with_repo(self, wizard_app):
         """Client with mock device_repo on app.state."""
         from opencloudtouch.core.dependencies import get_wizard_service
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService
 
         mock_repo = AsyncMock()
         wizard_app.dependency_overrides[get_wizard_service] = lambda: WizardService(
@@ -1394,8 +1391,7 @@ class TestWizardServerInfo:
         from fastapi.testclient import TestClient
         from opencloudtouch.core.dependencies import get_wizard_service
         from opencloudtouch.core.exception_handlers import register_exception_handlers
-        from opencloudtouch.setup.wizard_routes import wizard_router
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService, wizard_router
 
         # Ensure clean state with DEFAULT_PORT
         monkeypatch.setenv("OCT_PORT", str(DEFAULT_PORT))
@@ -1537,7 +1533,7 @@ class TestWizardFinalize:
     def test_finalize_success(self, client):
         with patch.object(
             __import__(
-                "opencloudtouch.setup.wizard_service", fromlist=["WizardService"]
+                "opencloudtouch.setup.wizard", fromlist=["WizardService"]
             ).WizardService,
             "finalize_device",
             new_callable=AsyncMock,
@@ -1565,7 +1561,7 @@ class TestWizardFinalize:
     def test_finalize_failure(self, client):
         with patch.object(
             __import__(
-                "opencloudtouch.setup.wizard_service", fromlist=["WizardService"]
+                "opencloudtouch.setup.wizard", fromlist=["WizardService"]
             ).WizardService,
             "finalize_device",
             new_callable=AsyncMock,
@@ -1590,7 +1586,7 @@ class TestWizardVerifySetup:
     def test_verify_all_passed(self, client):
         with patch.object(
             __import__(
-                "opencloudtouch.setup.wizard_service", fromlist=["WizardService"]
+                "opencloudtouch.setup.wizard", fromlist=["WizardService"]
             ).WizardService,
             "verify_setup",
             new_callable=AsyncMock,
@@ -1626,7 +1622,7 @@ class TestWizardVerifySetup:
     def test_verify_with_failures(self, client):
         with patch.object(
             __import__(
-                "opencloudtouch.setup.wizard_service", fromlist=["WizardService"]
+                "opencloudtouch.setup.wizard", fromlist=["WizardService"]
             ).WizardService,
             "verify_setup",
             new_callable=AsyncMock,

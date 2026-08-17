@@ -142,7 +142,7 @@ class TestBug184AccountPairingInWizard:
     @pytest.mark.asyncio
     async def test_wizard_has_ensure_account_pairing_method(self):
         """Verify WizardService exposes ensure_account_pairing."""
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService
 
         wizard = WizardService()
         assert hasattr(wizard, "ensure_account_pairing")
@@ -152,7 +152,7 @@ class TestBug184AccountPairingInWizard:
     async def test_ensure_account_pairing_persists_uuid(self):
         """Verify pairing persists UUID to device repository."""
         from opencloudtouch.setup.account_pairing_service import AccountPairingResult
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService
 
         mock_device_repo = AsyncMock()
         mock_device_repo.update_marge_account_uuid = AsyncMock()
@@ -177,7 +177,7 @@ class TestBug184AccountPairingInWizard:
     @pytest.mark.asyncio
     async def test_ensure_account_pairing_handles_failure(self):
         """Verify pairing handles failures gracefully."""
-        from opencloudtouch.setup.wizard_service import WizardService
+        from opencloudtouch.setup.wizard import WizardService
 
         wizard = WizardService()
         with patch(

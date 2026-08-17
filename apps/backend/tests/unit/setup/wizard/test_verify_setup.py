@@ -6,7 +6,7 @@ import pytest
 
 from opencloudtouch.setup.persistence_service import _PERSISTENCE_DIR
 from opencloudtouch.setup.ssh_client import CommandResult
-from opencloudtouch.setup.wizard_service import WizardService
+from opencloudtouch.setup.wizard import WizardService
 
 FULL_SOURCES_XML = """<?xml version="1.0" encoding="UTF-8" ?>
 <sources>

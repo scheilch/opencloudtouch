@@ -47,6 +47,7 @@
 | `radio` | RadioBrowser search provider |
 | `settings` | User settings persistence |
 | `setup` | SSH/USB device configuration wizard |
+| `setup/wizard/` | Step-organized wizard subpackage (per-step route/service mixin files); see `docs/superpowers/plans/2026-08-15-refactor-setup-wizard-module.md` |
 | `bmx` | Bose Media Exchange emulation |
 | `marge` | Bose cloud API emulation (XML) |
 | `recents` | Recently played items |

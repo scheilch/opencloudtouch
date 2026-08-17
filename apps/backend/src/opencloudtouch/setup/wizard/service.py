@@ -1,9 +1,10 @@
-"""Wizard orchestration service.
+"""Composed WizardService facade.
 
-Encapsulates the multi-step wizard business logic. Route handlers delegate
-here instead of directly instantiating SSH services and orchestrating steps.
+Method bodies live in the per-step mixin files in this package; this class
+only assembles them. See docs/ARCHITECTURE.md "Setup Wizard Subsystem".
 """
 
+from opencloudtouch.setup.wizard.base import WizardServiceBase
 from opencloudtouch.setup.wizard.legacy_routes import LegacyWizardMixin
 from opencloudtouch.setup.wizard.step3_connectivity import Step3ConnectivityMixin
 from opencloudtouch.setup.wizard.step4_backup import Step4BackupMixin
@@ -21,18 +22,6 @@ class WizardService(
     Step7FinalizeVerifyMixin,
     Step8CompletionMixin,
     LegacyWizardMixin,
+    WizardServiceBase,
 ):
-    """Orchestrates the device setup wizard steps.
-
-    Each method corresponds to one wizard step and handles:
-    - SSH connection lifecycle
-    - Service instantiation
-    - Audit trail snapshots
-    - Result assembly
-    """
-
-    SSH_TIMEOUT: float = 5.0
-
-    def __init__(self, audit_repo=None, device_repo=None) -> None:
-        self._audit_repo = audit_repo
-        self._device_repo = device_repo
+    """Orchestrates the device setup wizard steps — see per-step mixins for logic."""

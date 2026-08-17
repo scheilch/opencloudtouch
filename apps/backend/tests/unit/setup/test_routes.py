@@ -24,8 +24,7 @@ from opencloudtouch.setup.models import (
 )
 from opencloudtouch.setup.routes import router
 from opencloudtouch.setup.service import SetupService
-from opencloudtouch.setup.wizard_routes import wizard_router
-from opencloudtouch.setup.wizard_service import WizardService
+from opencloudtouch.setup.wizard import WizardService, wizard_router
 
 
 def create_mock_service():

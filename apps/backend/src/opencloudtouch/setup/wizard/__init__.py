@@ -1,4 +1,6 @@
-"""Setup wizard subsystem — per-step route handlers + the composed WizardService.
+"""Setup wizard subsystem: per-step route handlers + the composed WizardService facade."""
 
-Populated incrementally; see docs/superpowers/plans/2026-08-15-refactor-setup-wizard-module.md.
-"""
+from opencloudtouch.setup.wizard.router import wizard_router
+from opencloudtouch.setup.wizard.service import WizardService
+
+__all__ = ["WizardService", "wizard_router"]

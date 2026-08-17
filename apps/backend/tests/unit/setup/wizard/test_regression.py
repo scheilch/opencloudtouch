@@ -15,7 +15,7 @@ import pytest
 
 from opencloudtouch.setup.persistence_service import build_system_config_xml
 from opencloudtouch.setup.ssh_client import CommandResult
-from opencloudtouch.setup.wizard_service import WizardService
+from opencloudtouch.setup.wizard import WizardService
 
 
 class TestBuildSystemConfigXmlAcctMode:
@@ -50,7 +50,7 @@ class TestWizardServiceRemovedMethods:
         assert not hasattr(WizardService, "_fetch_device_metadata")
 
     def test_no_read_file_content_in_module(self):
-        from opencloudtouch.setup import wizard_service as mod
+        from opencloudtouch.setup.wizard import service as mod
 
         assert not hasattr(mod, "_read_file_content")
 
@@ -59,14 +59,12 @@ class TestWizardServiceExistingMethods:
     """Regression: these internal methods MUST exist (tests mock them)."""
 
     def test_file_exists_importable(self):
-        from opencloudtouch.setup.wizard.step7_finalize_verify import _file_exists
+        from opencloudtouch.setup.persistence_service import _file_exists
 
         assert callable(_file_exists)
 
     def test_write_file_atomic_importable(self):
-        from opencloudtouch.setup.wizard.step7_finalize_verify import (
-            _write_file_atomic,
-        )
+        from opencloudtouch.setup.persistence_service import _write_file_atomic
 
         assert callable(_write_file_atomic)
 
