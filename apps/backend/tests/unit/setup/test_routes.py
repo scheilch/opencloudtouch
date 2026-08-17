@@ -1194,8 +1194,8 @@ class TestWizardRestoreRoutes:
 
     def test_restore_config_success(self, client, monkeypatch):
         """POST /wizard/restore-config success returns 200."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.config_service import RestoreResult
+        from opencloudtouch.setup.wizard import legacy_routes as routes
 
         mock_ssh = AsyncMock()
         mock_result = RestoreResult(success=True)
@@ -1224,8 +1224,8 @@ class TestWizardRestoreRoutes:
 
     def test_restore_config_failure(self, client, monkeypatch):
         """POST /wizard/restore-config failure returns 200 with success=False."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.config_service import RestoreResult
+        from opencloudtouch.setup.wizard import legacy_routes as routes
 
         mock_ssh = AsyncMock()
         mock_result = RestoreResult(success=False, error="File missing")
@@ -1254,8 +1254,8 @@ class TestWizardRestoreRoutes:
 
     def test_restore_hosts_success(self, client, monkeypatch):
         """POST /wizard/restore-hosts success returns 200."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.hosts_service import RestoreResult
+        from opencloudtouch.setup.wizard import legacy_routes as routes
 
         mock_ssh = AsyncMock()
         mock_result = RestoreResult(success=True)
@@ -1284,8 +1284,8 @@ class TestWizardRestoreRoutes:
 
     def test_restore_hosts_failure(self, client, monkeypatch):
         """POST /wizard/restore-hosts failure returns 200 with success=False."""
-        from opencloudtouch.setup import wizard_service as routes
         from opencloudtouch.setup.hosts_service import RestoreResult
+        from opencloudtouch.setup.wizard import legacy_routes as routes
 
         mock_ssh = AsyncMock()
         mock_result = RestoreResult(success=False, error="Permission denied")
@@ -1320,7 +1320,7 @@ class TestWizardListBackupsRoute:
 
     def test_list_backups_success(self, client, monkeypatch):
         """Successful list-backups returns 200 with backup lists."""
-        from opencloudtouch.setup import wizard_service as routes
+        from opencloudtouch.setup.wizard import legacy_routes as routes
 
         mock_ssh = AsyncMock()
         mock_config_svc = AsyncMock()

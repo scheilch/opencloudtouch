@@ -161,7 +161,7 @@ class TestBug184AccountPairingInWizard:
             success=True, had_uuid=False, uuid="1234567", message="UUID set"
         )
         with patch(
-            "opencloudtouch.setup.wizard_service.ensure_account_uuid",
+            "opencloudtouch.setup.wizard.legacy_routes.ensure_account_uuid",
             new_callable=AsyncMock,
             return_value=fake_result,
         ):
@@ -181,7 +181,7 @@ class TestBug184AccountPairingInWizard:
 
         wizard = WizardService()
         with patch(
-            "opencloudtouch.setup.wizard_service.ensure_account_uuid",
+            "opencloudtouch.setup.wizard.legacy_routes.ensure_account_uuid",
             new_callable=AsyncMock,
             side_effect=ConnectionError("Device unreachable"),
         ):

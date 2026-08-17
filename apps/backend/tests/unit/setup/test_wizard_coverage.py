@@ -50,7 +50,7 @@ class TestEnsureAccountPairing:
         service = WizardService(device_repo=repo)
 
         with patch(
-            "opencloudtouch.setup.wizard_service.ensure_account_uuid",
+            "opencloudtouch.setup.wizard.legacy_routes.ensure_account_uuid",
             new_callable=AsyncMock,
             return_value=AccountPairingResult(
                 success=True, had_uuid=True, uuid="1234567", message="OK"
@@ -68,7 +68,7 @@ class TestEnsureAccountPairing:
         service = WizardService(device_repo=repo)
 
         with patch(
-            "opencloudtouch.setup.wizard_service.ensure_account_uuid",
+            "opencloudtouch.setup.wizard.legacy_routes.ensure_account_uuid",
             new_callable=AsyncMock,
             side_effect=ConnectionError("SSH timeout"),
         ):

@@ -505,7 +505,7 @@ class TestWizardRestoreConfig:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchConfigService",
+                "opencloudtouch.setup.wizard.legacy_routes.SoundTouchConfigService",
                 return_value=mock_config_service,
             ),
         ):
@@ -535,7 +535,7 @@ class TestWizardRestoreHosts:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchHostsService",
+                "opencloudtouch.setup.wizard.legacy_routes.SoundTouchHostsService",
                 return_value=mock_hosts_service,
             ),
         ):
@@ -566,11 +566,11 @@ class TestWizardListBackups:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchConfigService",
+                "opencloudtouch.setup.wizard.legacy_routes.SoundTouchConfigService",
                 return_value=mock_config_service,
             ),
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchHostsService",
+                "opencloudtouch.setup.wizard.legacy_routes.SoundTouchHostsService",
                 return_value=mock_hosts_service,
             ),
         ):
