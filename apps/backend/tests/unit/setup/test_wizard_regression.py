@@ -59,12 +59,14 @@ class TestWizardServiceExistingMethods:
     """Regression: these internal methods MUST exist (tests mock them)."""
 
     def test_file_exists_importable(self):
-        from opencloudtouch.setup.wizard_service import _file_exists
+        from opencloudtouch.setup.wizard.step7_finalize_verify import _file_exists
 
         assert callable(_file_exists)
 
     def test_write_file_atomic_importable(self):
-        from opencloudtouch.setup.wizard_service import _write_file_atomic
+        from opencloudtouch.setup.wizard.step7_finalize_verify import (
+            _write_file_atomic,
+        )
 
         assert callable(_write_file_atomic)
 

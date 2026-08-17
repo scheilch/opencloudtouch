@@ -603,7 +603,7 @@ class TestWizardRebootDevice:
         mock_ssh.close = AsyncMock()
 
         with patch(
-            "opencloudtouch.setup.wizard_service.SoundTouchSSHClient",
+            "opencloudtouch.setup.wizard.step7_finalize_verify.SoundTouchSSHClient",
             return_value=mock_ssh,
         ):
             response = client.post(
@@ -621,7 +621,7 @@ class TestWizardRebootDevice:
         mock_ssh.close = AsyncMock()
 
         with patch(
-            "opencloudtouch.setup.wizard_service.SoundTouchSSHClient",
+            "opencloudtouch.setup.wizard.step7_finalize_verify.SoundTouchSSHClient",
             return_value=mock_ssh,
         ):
             response = client.post(

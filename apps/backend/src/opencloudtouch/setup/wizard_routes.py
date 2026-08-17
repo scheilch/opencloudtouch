@@ -6,7 +6,7 @@ All business logic lives in WizardService; routes only handle HTTP concerns.
 """
 
 import logging
-from typing import Annotated, Any, Dict
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import status as http_status
@@ -15,11 +15,8 @@ from opencloudtouch.core.dependencies import RestoreServiceDep, get_wizard_servi
 from opencloudtouch.setup.api_models import (
     AccountPairingRequest,
     AccountPairingResponse,
-    ConnectivityCheckRequest,
     EnsureAccountRequest,
     EnsureAccountResponse,
-    FinalizeRequest,
-    FinalizeResponse,
     InitPersistenceRequest,
     InitPersistenceResponse,
     ListBackupsRequest,
@@ -31,10 +28,6 @@ from opencloudtouch.setup.api_models import (
     RestoreWizardResponse,
     ScanBackupsRequest,
     ScanBackupsResponse,
-    VerifyRedirectRequest,
-    VerifyRedirectResponse,
-    VerifySetupRequest,
-    VerifySetupResponse,
     WizardCompleteRequest,
     WizardCompleteResponse,
 )
@@ -42,6 +35,7 @@ from opencloudtouch.setup.wizard.step3_connectivity import step3_router
 from opencloudtouch.setup.wizard.step4_backup import step4_router
 from opencloudtouch.setup.wizard.step5_config import step5_router
 from opencloudtouch.setup.wizard.step6_hosts import step6_router
+from opencloudtouch.setup.wizard.step7_finalize_verify import step7_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 from opencloudtouch.setup.wizard_service import WizardService
@@ -54,6 +48,7 @@ wizard_router.include_router(step3_router)
 wizard_router.include_router(step4_router)
 wizard_router.include_router(step5_router)
 wizard_router.include_router(step6_router)
+wizard_router.include_router(step7_router)
 
 
 @wizard_router.post("/wizard/restore-config", response_model=RestoreResponse)
@@ -101,32 +96,6 @@ async def wizard_list_backups(
         config_backups=result["config_backups"],
         hosts_backups=result["hosts_backups"],
     )
-
-
-@wizard_router.post("/wizard/reboot-device")
-async def wizard_reboot_device(
-    request: ConnectivityCheckRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-) -> Dict[str, Any]:
-    """Reboot SoundTouch device via SSH (Wizard Step 7)."""
-    logger.info("Sending reboot command to %s", request.ip)
-
-    result = await wizard.reboot_device(request.ip)
-
-    if not result["success"]:
-        error_msg = result["error"]
-        # Connection failures ? 503; unexpected errors ? 500
-        if "SSH connection failed" in error_msg:
-            status_code = http_status.HTTP_503_SERVICE_UNAVAILABLE
-        else:
-            status_code = http_status.HTTP_500_INTERNAL_SERVER_ERROR
-        raise HTTPException(status_code=status_code, detail=error_msg)
-
-    logger.info("Reboot command sent to %s", request.ip)
-    return {
-        "success": True,
-        "message": "Neustart-Befehl gesendet. Das Ger�t startet in wenigen Sekunden neu.",
-    }
 
 
 @wizard_router.post("/wizard/account-pairing", response_model=AccountPairingResponse)
@@ -252,103 +221,6 @@ async def wizard_complete(
         device_id=request.device_id,
         setup_status="configured",
         message="Setup abgeschlossen. Ger�t ist konfiguriert.",
-    )
-
-
-@wizard_router.post("/wizard/verify-redirect", response_model=VerifyRedirectResponse)
-async def wizard_verify_redirect(
-    request: VerifyRedirectRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Verify a domain is redirected to OCT on the device (Wizard Step 7)."""
-    logger.info(
-        "Verifying redirect of %s on %s (expected: %s)",
-        request.domain,
-        request.device_ip,
-        request.expected_ip,
-    )
-
-    result = await wizard.verify_redirect(
-        request.device_ip, request.domain, request.expected_ip
-    )
-
-    return VerifyRedirectResponse(
-        success=result["matches_expected"],
-        domain=result["domain"],
-        resolved_ip=result["resolved_ip"],
-        expected_ip=result["expected_ip"],
-        matches_expected=result["matches_expected"],
-        message=result["message"],
-    )
-
-
-@wizard_router.post(
-    "/wizard/finalize",
-    response_model=FinalizeResponse,
-    responses={500: {"description": "Finalization failed"}},
-)
-async def wizard_finalize(
-    request: FinalizeRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Finalize device setup: set UUID + write Sources.xml (Issue #184).
-
-    Atomic operation that ensures the device has a unique margeAccountUUID
-    and a complete Sources.xml. Safe to call multiple times (idempotent).
-    """
-    logger.info("Finalizing device %s (%s)", request.device_id, request.device_ip)
-
-    result = await wizard.finalize_device(request.device_ip, request.device_id)
-
-    if not result["success"]:
-        return FinalizeResponse(
-            success=False,
-            error=result.get("error", "Finalization failed"),
-        )
-
-    return FinalizeResponse(
-        success=True,
-        uuid=result.get("uuid", ""),
-        had_uuid=result.get("had_uuid", False),
-        uuid_was_collision=result.get("uuid_was_collision", False),
-        sources_written=result.get("sources_written", False),
-        sources_backup_path=result.get("sources_backup_path", ""),
-        system_config_written=result.get("system_config_written", False),
-        message=result.get("message", ""),
-    )
-
-
-@wizard_router.post(
-    "/wizard/verify-setup",
-    response_model=VerifySetupResponse,
-    responses={500: {"description": "Verification failed"}},
-)
-async def wizard_verify_setup(
-    request: VerifySetupRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Comprehensive post-setup health check (Issue #184).
-
-    Read-only validation: checks UUID, Sources.xml, config files,
-    hosts entries, and SystemConfigurationDB.xml. Never modifies device.
-    """
-    logger.info(
-        "Verifying setup for %s (%s, expected OCT IP: %s)",
-        request.device_id,
-        request.device_ip,
-        request.expected_oct_ip,
-    )
-
-    result = await wizard.verify_setup(
-        request.device_ip, request.device_id, request.expected_oct_ip
-    )
-
-    return VerifySetupResponse(
-        success=result["success"],
-        checks=result.get("checks", []),
-        passed_count=result.get("passed_count", 0),
-        failed_count=result.get("failed_count", 0),
-        message=result.get("message", ""),
     )
 
 
