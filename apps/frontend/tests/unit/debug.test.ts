@@ -87,4 +87,28 @@ describe("debug utilities", () => {
       expect(globalThis.__OCT_DEBUG__).toBe(false);
     });
   });
+
+  describe("non-browser environment (SSR)", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("skips the localStorage-backed init when window is undefined at module load", async () => {
+      vi.stubGlobal("window", undefined);
+      vi.resetModules();
+
+      await expect(import("../../src/utils/debug")).resolves.toBeDefined();
+    });
+
+    it("syncDebugFromBackendLevel no-ops when window is undefined", async () => {
+      vi.resetModules();
+      const mod = await import("../../src/utils/debug");
+      globalThis.__OCT_DEBUG__ = false;
+      vi.stubGlobal("window", undefined);
+
+      mod.syncDebugFromBackendLevel("DEBUG");
+
+      expect(globalThis.__OCT_DEBUG__).toBe(false);
+    });
+  });
 });

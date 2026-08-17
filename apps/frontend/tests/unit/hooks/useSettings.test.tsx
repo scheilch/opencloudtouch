@@ -81,6 +81,18 @@ describe("useAddManualIP", () => {
     expect(mockSetManualIPs).not.toHaveBeenCalled();
     expect(result.current.data).toEqual(["192.168.1.50"]);
   });
+
+  it("treats an empty cache as no IPs when adding the first one", async () => {
+    const { wrapper } = createQueryClientWrapper();
+    // No prior setQueryData call — cache is empty, exercising the `|| []` fallback.
+    mockSetManualIPs.mockResolvedValue(["192.168.1.60"]);
+
+    const { result } = renderHook(() => useAddManualIP(), { wrapper });
+    result.current.mutate("192.168.1.60");
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(mockSetManualIPs).toHaveBeenCalledWith(["192.168.1.60"]);
+  });
 });
 
 describe("useDeleteManualIP", () => {
