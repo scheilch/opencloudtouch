@@ -15,8 +15,6 @@ from opencloudtouch.core.dependencies import RestoreServiceDep, get_wizard_servi
 from opencloudtouch.setup.api_models import (
     AccountPairingRequest,
     AccountPairingResponse,
-    BackupRequest,
-    BackupResponse,
     ConfigModifyRequest,
     ConfigModifyResponse,
     ConnectivityCheckRequest,
@@ -45,6 +43,7 @@ from opencloudtouch.setup.api_models import (
     WizardCompleteResponse,
 )
 from opencloudtouch.setup.wizard.step3_connectivity import step3_router
+from opencloudtouch.setup.wizard.step4_backup import step4_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 from opencloudtouch.setup.wizard_service import WizardService
@@ -54,28 +53,7 @@ logger = logging.getLogger(__name__)
 wizard_router = APIRouter(prefix="/api/setup", tags=["Setup Wizard"])
 wizard_router.include_router(strategy_router)
 wizard_router.include_router(step3_router)
-
-
-@wizard_router.post("/wizard/backup", response_model=BackupResponse)
-async def wizard_backup(
-    request: BackupRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Create complete backup to USB stick (Wizard Step 4)."""
-    logger.info("Starting backup for %s", request.device_ip)
-
-    result = await wizard.backup_all(request.device_ip, request.device_id or "")
-
-    if not result["success"]:
-        return BackupResponse(success=False, message=result["message"])
-
-    return BackupResponse(
-        success=True,
-        message=result["message"],
-        volumes=result.get("volumes") or [],
-        total_size_mb=result.get("total_size_mb") or 0.0,
-        total_duration_seconds=result.get("total_duration_seconds") or 0.0,
-    )
+wizard_router.include_router(step4_router)
 
 
 @wizard_router.post("/wizard/modify-config", response_model=ConfigModifyResponse)

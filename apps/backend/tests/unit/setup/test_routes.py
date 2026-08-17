@@ -859,7 +859,7 @@ class TestWizardBackupRoute:
 
     def test_backup_success(self, client, monkeypatch):
         """Successful backup returns 200 with volumes list."""
-        from opencloudtouch.setup import wizard_service as routes
+        from opencloudtouch.setup.wizard import step4_backup as routes
         from opencloudtouch.setup.backup_service import BackupResult, VolumeType
 
         mock_ssh = AsyncMock()
@@ -894,7 +894,7 @@ class TestWizardBackupRoute:
 
     def test_backup_partial_failure_returns_success_false(self, client, monkeypatch):
         """Backup with failed volumes returns success=False."""
-        from opencloudtouch.setup import wizard_service as routes
+        from opencloudtouch.setup.wizard import step4_backup as routes
         from opencloudtouch.setup.backup_service import BackupResult, VolumeType
 
         mock_ssh = AsyncMock()

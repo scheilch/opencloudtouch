@@ -20,7 +20,6 @@ from opencloudtouch.setup.account_pairing_service import (
     ensure_account_uuid,
     ensure_account_uuid_unique,
 )
-from opencloudtouch.setup.backup_service import SoundTouchBackupService
 from opencloudtouch.setup.config_service import SoundTouchConfigService
 from opencloudtouch.setup.hosts_service import SoundTouchHostsService
 from opencloudtouch.setup.persistence_service import (
@@ -33,6 +32,7 @@ from opencloudtouch.setup.persistence_service import (
 )
 from opencloudtouch.setup.ssh_client import SoundTouchSSHClient
 from opencloudtouch.setup.wizard.step3_connectivity import Step3ConnectivityMixin
+from opencloudtouch.setup.wizard.step4_backup import Step4BackupMixin
 from opencloudtouch.setup.wizard_helpers import snapshot_config_files, ssh_operation
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 _ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 
-class WizardService(Step3ConnectivityMixin):
+class WizardService(Step3ConnectivityMixin, Step4BackupMixin):
     """Orchestrates the device setup wizard steps.
 
     Each method corresponds to one wizard step and handles:
@@ -55,42 +55,6 @@ class WizardService(Step3ConnectivityMixin):
     def __init__(self, audit_repo=None, device_repo=None) -> None:
         self._audit_repo = audit_repo
         self._device_repo = device_repo
-
-    async def backup_all(self, device_ip: str, device_id: str) -> dict:
-        """Create complete backup to USB stick.
-
-        Returns:
-            Dict with success, message, volumes, total_size_mb, total_duration_seconds
-        """
-        async with ssh_operation(device_ip, "backup") as ssh:
-            backup_service = SoundTouchBackupService(ssh)
-            results = await backup_service.backup_all(device_id=device_id)
-
-            failed = [r for r in results if not r.success]
-            if failed:
-                return {
-                    "success": False,
-                    "message": "; ".join(r.error or "Unknown" for r in failed),
-                }
-
-            total_size = sum(r.size_bytes for r in results) / 1024 / 1024
-            total_duration = sum(r.duration_seconds for r in results)
-
-            return {
-                "success": True,
-                "message": f"Backup complete: {total_size:.2f} MB",
-                "volumes": [
-                    {
-                        "volume": r.volume.value,
-                        "path": r.backup_path,
-                        "size_mb": r.size_bytes / 1024 / 1024,
-                        "duration_seconds": r.duration_seconds,
-                    }
-                    for r in results
-                ],
-                "total_size_mb": total_size,
-                "total_duration_seconds": total_duration,
-            }
 
     async def modify_config(self, device_ip: str, target_addr: str) -> dict:
         """Modify BMX URL in device config.

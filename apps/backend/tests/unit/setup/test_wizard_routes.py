@@ -197,7 +197,7 @@ class TestWizardBackup:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchBackupService",
+                "opencloudtouch.setup.wizard.step4_backup.SoundTouchBackupService",
                 return_value=mock_backup_service,
             ),
         ):
@@ -220,7 +220,7 @@ class TestWizardBackup:
                 "opencloudtouch.setup.wizard_helpers.SoundTouchSSHClient"
             ) as mock_ssh,
             patch(
-                "opencloudtouch.setup.wizard_service.SoundTouchBackupService",
+                "opencloudtouch.setup.wizard.step4_backup.SoundTouchBackupService",
                 return_value=mock_backup_service,
             ),
         ):
