@@ -5,7 +5,6 @@ SSH-driven step-by-step wizard endpoints for device configuration.
 All business logic lives in WizardService; routes only handle HTTP concerns.
 """
 
-import asyncio
 import logging
 from typing import Annotated, Any, Dict
 
@@ -31,8 +30,6 @@ from opencloudtouch.setup.api_models import (
     InitPersistenceResponse,
     ListBackupsRequest,
     ListBackupsResponse,
-    PortCheckRequest,
-    PortCheckResponse,
     RestoreRequest,
     RestoreResponse,
     RestoreStepResponse,
@@ -47,6 +44,7 @@ from opencloudtouch.setup.api_models import (
     WizardCompleteRequest,
     WizardCompleteResponse,
 )
+from opencloudtouch.setup.wizard.step3_connectivity import step3_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 from opencloudtouch.setup.wizard_service import WizardService
@@ -55,31 +53,7 @@ logger = logging.getLogger(__name__)
 
 wizard_router = APIRouter(prefix="/api/setup", tags=["Setup Wizard"])
 wizard_router.include_router(strategy_router)
-
-
-@wizard_router.post("/wizard/check-ports", response_model=PortCheckResponse)
-async def wizard_check_ports(
-    request: PortCheckRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Check if SSH port is accessible (Wizard Step 3)."""
-    logger.info("Checking SSH port on %s", request.device_ip)
-
-    async with asyncio.timeout(request.timeout):
-        has_ssh = await wizard.check_ssh_port(request.device_ip)
-
-    if not has_ssh:
-        return PortCheckResponse(
-            success=False,
-            message="SSH not accessible. Check USB stick setup.",
-            has_ssh=False,
-        )
-
-    return PortCheckResponse(
-        success=True,
-        message="SSH access enabled",
-        has_ssh=True,
-    )
+wizard_router.include_router(step3_router)
 
 
 @wizard_router.post("/wizard/backup", response_model=BackupResponse)

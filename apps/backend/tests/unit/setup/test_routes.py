@@ -688,7 +688,7 @@ class TestCheckPorts:
 
     def test_request_uses_device_ip(self, client, monkeypatch):
         """Endpoint must accept device_ip field (not device_id)."""
-        import opencloudtouch.setup.wizard_service as routes
+        import opencloudtouch.setup.wizard.step3_connectivity as routes
 
         monkeypatch.setattr(routes, "check_ssh_port", AsyncMock(return_value=True))
 
@@ -708,7 +708,7 @@ class TestCheckPorts:
 
     def test_response_has_has_ssh_field(self, client, monkeypatch):
         """Response must use has_ssh field (not ssh_available)."""
-        import opencloudtouch.setup.wizard_service as routes
+        import opencloudtouch.setup.wizard.step3_connectivity as routes
 
         monkeypatch.setattr(routes, "check_ssh_port", AsyncMock(return_value=True))
 
@@ -725,7 +725,7 @@ class TestCheckPorts:
 
     def test_ssh_available_returns_true_in_has_ssh(self, client, monkeypatch):
         """When SSH is open, has_ssh=True should be returned."""
-        import opencloudtouch.setup.wizard_service as routes
+        import opencloudtouch.setup.wizard.step3_connectivity as routes
 
         monkeypatch.setattr(routes, "check_ssh_port", AsyncMock(return_value=True))
 
@@ -737,7 +737,7 @@ class TestCheckPorts:
 
     def test_no_ssh_returns_success_false(self, client, monkeypatch):
         """When SSH is not open, success=False."""
-        import opencloudtouch.setup.wizard_service as routes
+        import opencloudtouch.setup.wizard.step3_connectivity as routes
 
         monkeypatch.setattr(routes, "check_ssh_port", AsyncMock(return_value=False))
 

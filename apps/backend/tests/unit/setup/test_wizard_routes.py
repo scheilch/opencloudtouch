@@ -141,7 +141,7 @@ class TestWizardCheckPorts:
 
     def test_ssh_accessible(self, client):
         with patch(
-            "opencloudtouch.setup.wizard_service.check_ssh_port",
+            "opencloudtouch.setup.wizard.step3_connectivity.check_ssh_port",
             new_callable=AsyncMock,
             return_value=True,
         ):
@@ -156,7 +156,7 @@ class TestWizardCheckPorts:
 
     def test_ssh_not_accessible_returns_failure(self, client):
         with patch(
-            "opencloudtouch.setup.wizard_service.check_ssh_port",
+            "opencloudtouch.setup.wizard.step3_connectivity.check_ssh_port",
             new_callable=AsyncMock,
             return_value=False,
         ):

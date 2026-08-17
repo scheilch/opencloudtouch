@@ -31,7 +31,8 @@ from opencloudtouch.setup.persistence_service import (
     build_system_config_xml,
     force_write_sources_xml,
 )
-from opencloudtouch.setup.ssh_client import SoundTouchSSHClient, check_ssh_port
+from opencloudtouch.setup.ssh_client import SoundTouchSSHClient
+from opencloudtouch.setup.wizard.step3_connectivity import Step3ConnectivityMixin
 from opencloudtouch.setup.wizard_helpers import snapshot_config_files, ssh_operation
 
 logger = logging.getLogger(__name__)
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 _ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 
-class WizardService:
+class WizardService(Step3ConnectivityMixin):
     """Orchestrates the device setup wizard steps.
 
     Each method corresponds to one wizard step and handles:
@@ -54,10 +55,6 @@ class WizardService:
     def __init__(self, audit_repo=None, device_repo=None) -> None:
         self._audit_repo = audit_repo
         self._device_repo = device_repo
-
-    async def check_ssh_port(self, device_ip: str) -> bool:
-        """Check if SSH port is accessible on device."""
-        return await check_ssh_port(device_ip, timeout=self.SSH_TIMEOUT)
 
     async def backup_all(self, device_ip: str, device_id: str) -> dict:
         """Create complete backup to USB stick.
