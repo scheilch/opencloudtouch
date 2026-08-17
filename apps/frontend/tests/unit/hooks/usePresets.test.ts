@@ -2,7 +2,7 @@
  * Tests for usePresets hook — debounced load, auto-sync-if-empty, assign/remove.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { usePresets } from "../../../src/hooks/usePresets";
 
 const mockGetDevicePresets = vi.fn();
