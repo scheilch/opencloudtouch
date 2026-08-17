@@ -9,7 +9,6 @@ import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi import status as http_status
 
 from opencloudtouch.core.dependencies import RestoreServiceDep, get_wizard_service
 from opencloudtouch.setup.api_models import (
@@ -28,14 +27,13 @@ from opencloudtouch.setup.api_models import (
     RestoreWizardResponse,
     ScanBackupsRequest,
     ScanBackupsResponse,
-    WizardCompleteRequest,
-    WizardCompleteResponse,
 )
 from opencloudtouch.setup.wizard.step3_connectivity import step3_router
 from opencloudtouch.setup.wizard.step4_backup import step4_router
 from opencloudtouch.setup.wizard.step5_config import step5_router
 from opencloudtouch.setup.wizard.step6_hosts import step6_router
 from opencloudtouch.setup.wizard.step7_finalize_verify import step7_router
+from opencloudtouch.setup.wizard.step8_completion import step8_router
 from opencloudtouch.setup.wizard.strategy import strategy_router
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 from opencloudtouch.setup.wizard_service import WizardService
@@ -49,6 +47,7 @@ wizard_router.include_router(step4_router)
 wizard_router.include_router(step5_router)
 wizard_router.include_router(step6_router)
 wizard_router.include_router(step7_router)
+wizard_router.include_router(step8_router)
 
 
 @wizard_router.post("/wizard/restore-config", response_model=RestoreResponse)
@@ -197,30 +196,6 @@ async def wizard_init_persistence(request: InitPersistenceRequest):
         created_files=result.created_files,
         skipped_files=result.skipped_files,
         message=result.message,
-    )
-
-
-@wizard_router.post("/wizard/complete", response_model=WizardCompleteResponse)
-async def wizard_complete(
-    request: WizardCompleteRequest,
-    wizard: Annotated[WizardService, Depends(get_wizard_service)],
-):
-    """Mark wizard setup as complete for a device."""
-    logger.info("Marking wizard setup complete for device %s", request.device_id)
-
-    result = await wizard.mark_complete(request.device_id)
-
-    if not result["success"]:
-        raise HTTPException(
-            status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result["error"],
-        )
-
-    return WizardCompleteResponse(
-        success=True,
-        device_id=request.device_id,
-        setup_status="configured",
-        message="Setup abgeschlossen. Ger�t ist konfiguriert.",
     )
 
 

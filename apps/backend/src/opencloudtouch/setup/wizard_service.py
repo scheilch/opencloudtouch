@@ -5,7 +5,6 @@ here instead of directly instantiating SSH services and orchestrating steps.
 """
 
 import logging
-from datetime import UTC, datetime
 
 from opencloudtouch.setup.account_pairing_service import ensure_account_uuid
 from opencloudtouch.setup.config_service import SoundTouchConfigService
@@ -15,11 +14,10 @@ from opencloudtouch.setup.wizard.step4_backup import Step4BackupMixin
 from opencloudtouch.setup.wizard.step5_config import Step5ConfigMixin
 from opencloudtouch.setup.wizard.step6_hosts import Step6HostsMixin
 from opencloudtouch.setup.wizard.step7_finalize_verify import Step7FinalizeVerifyMixin
+from opencloudtouch.setup.wizard.step8_completion import Step8CompletionMixin
 from opencloudtouch.setup.wizard_helpers import ssh_operation
 
 logger = logging.getLogger(__name__)
-
-_ERR_DEVICE_REPO_UNAVAILABLE = "Device repository not available"
 
 
 class WizardService(
@@ -28,6 +26,7 @@ class WizardService(
     Step5ConfigMixin,
     Step6HostsMixin,
     Step7FinalizeVerifyMixin,
+    Step8CompletionMixin,
 ):
     """Orchestrates the device setup wizard steps.
 
@@ -117,19 +116,3 @@ class WizardService(
                 "message": "",
                 "error": f"Account pairing failed: {e}",
             }
-
-    async def mark_complete(self, device_id: str) -> dict:
-        """Mark wizard setup as complete for a device."""
-        if not self._device_repo:
-            return {"success": False, "error": _ERR_DEVICE_REPO_UNAVAILABLE}
-
-        try:
-            await self._device_repo.update_setup_status(
-                device_id=device_id,
-                setup_status="configured",
-                setup_completed_at=datetime.now(UTC),
-            )
-            return {"success": True}
-        except Exception as e:
-            logger.exception("Failed to update setup status for %s", device_id)
-            return {"success": False, "error": f"Failed to update setup status: {e}"}
