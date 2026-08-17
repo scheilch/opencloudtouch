@@ -36,7 +36,13 @@ legacy_router = APIRouter()
 
 
 class LegacyWizardMixin:
-    """Dead WizardService methods — see wizard_service.py:200,210,220,257 (pre-move)."""
+    """Superseded WizardService methods kept for API-compat.
+
+    Only restore_config/restore_hosts remain (backing /wizard/restore-config
+    and /wizard/restore-hosts). list_backups and ensure_account_pairing were
+    removed 2026-08-17 along with their dead endpoints — see the module
+    docstring above for details and the 2026-08-17 scope narrowing rationale.
+    """
 
     async def restore_config(self, device_ip: str, backup_path: str) -> dict:
         """Restore config from backup."""
