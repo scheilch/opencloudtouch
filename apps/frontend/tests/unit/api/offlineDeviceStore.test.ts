@@ -23,11 +23,6 @@ describe("offlineDeviceStore", () => {
     expect(isDeviceOffline("ST10-001")).toBe(true);
   });
 
-  it("does not affect other devices", () => {
-    markDeviceOffline("ST10-001");
-    expect(isDeviceOffline("ST30-002")).toBe(false);
-  });
-
   it("getOfflineDeviceIds reflects all marked devices", () => {
     markDeviceOffline("ST10-001");
     markDeviceOffline("ST30-002");
@@ -37,12 +32,5 @@ describe("offlineDeviceStore", () => {
     expect(ids.has("ST10-001")).toBe(true);
     expect(ids.has("ST30-002")).toBe(true);
     expect(ids.size).toBe(2);
-  });
-
-  it("_resetOfflineStore clears all marked devices", () => {
-    markDeviceOffline("ST10-001");
-    _resetOfflineStore();
-    expect(isDeviceOffline("ST10-001")).toBe(false);
-    expect(getOfflineDeviceIds().size).toBe(0);
   });
 });

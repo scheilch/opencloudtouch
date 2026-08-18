@@ -35,6 +35,14 @@ describe("useZoneNames", () => {
     expect(result.current.getZoneName("ST10-001", "Living Room")).toBe("x".repeat(30));
   });
 
+  it("trims leading/trailing whitespace on a short name (no truncation involved)", () => {
+    const { result } = renderHook(() => useZoneNames());
+
+    act(() => result.current.setZoneName("ST10-001", "  Wohnzimmer  "));
+
+    expect(result.current.getZoneName("ST10-001", "Living Room")).toBe("Wohnzimmer");
+  });
+
   it("setting an empty/whitespace-only name removes the custom name", () => {
     const { result } = renderHook(() => useZoneNames());
     act(() => result.current.setZoneName("ST10-001", "Wohnzimmer"));

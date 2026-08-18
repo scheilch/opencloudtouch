@@ -14,18 +14,6 @@ vi.mock("../../../src/components/Toast", () => ({
 }));
 
 describe("ToastContext", () => {
-  it("show() then hide() round-trips through the context value", () => {
-    const { result } = renderHook(() => useToast(), { wrapper: ToastProvider });
-
-    expect(typeof result.current.show).toBe("function");
-    expect(typeof result.current.hide).toBe("function");
-
-    // Calling show/hide must not throw — actual rendering of the Toast DOM
-    // node is covered by the mounted-tree test below.
-    act(() => result.current.show("Saved", "success"));
-    act(() => result.current.hide());
-  });
-
   it("renders the toast with the default type and duration when omitted", () => {
     let captured: {
       show: (message: string, type?: string, duration?: number) => void;

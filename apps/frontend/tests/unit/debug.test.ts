@@ -46,17 +46,13 @@ describe("debug utilities", () => {
     it("enables debug when level is DEBUG", () => {
       syncDebugFromBackendLevel("DEBUG");
       expect(globalThis.__OCT_DEBUG__).toBe(true);
+      expect(localStorage.getItem("oct_debug")).toBe("true");
     });
 
     it("disables debug for any non-DEBUG level", () => {
       globalThis.__OCT_DEBUG__ = true;
       syncDebugFromBackendLevel("INFO");
       expect(globalThis.__OCT_DEBUG__).toBe(false);
-    });
-
-    it("persists the flag to localStorage via the global setter", () => {
-      syncDebugFromBackendLevel("DEBUG");
-      expect(localStorage.getItem("oct_debug")).toBe("true");
     });
   });
 
