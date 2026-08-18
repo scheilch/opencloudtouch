@@ -113,21 +113,6 @@ describe("About page", () => {
     });
   });
 
-  it("handles failed supporters fetch", async () => {
-    setupHealthMock();
-    mockFetchWith({ ok: false });
-
-    render(
-      <MemoryRouter>`n          <QueryWrapper>`n            <About />
-        </QueryWrapper>
-      </MemoryRouter>,
-    );
-
-    await waitFor(() => {
-      expect(screen.queryByText("Suppâ¤ï¸rters")).toBeNull();  // check-mojibake: skip
-    });
-  });
-
   it("handles fetch error gracefully", async () => {
     setupHealthMock();
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});

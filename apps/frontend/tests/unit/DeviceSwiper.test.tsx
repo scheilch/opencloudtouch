@@ -48,6 +48,9 @@ describe("DeviceSwiper Component", () => {
 
     const prevButton = screen.getByLabelText("Previous device");
     expect(prevButton).toBeDisabled();
+
+    fireEvent.click(prevButton);
+    expect(mockOnIndexChange).not.toHaveBeenCalled();
   });
 
   it("disables next arrow at last device", () => {
@@ -59,6 +62,9 @@ describe("DeviceSwiper Component", () => {
 
     const nextButton = screen.getByLabelText("Next device");
     expect(nextButton).toBeDisabled();
+
+    fireEvent.click(nextButton);
+    expect(mockOnIndexChange).not.toHaveBeenCalled();
   });
 
 
@@ -87,32 +93,6 @@ describe("DeviceSwiper Component", () => {
     fireEvent.click(nextButton);
 
     expect(mockOnIndexChange).toHaveBeenCalledWith(1);
-  });
-
-  it("does not change index when clicking disabled previous arrow", () => {
-    render(
-      <DeviceSwiper devices={mockDevices} currentIndex={0} onIndexChange={mockOnIndexChange}>
-        <div>Device Content</div>
-      </DeviceSwiper>
-    );
-
-    const prevButton = screen.getByLabelText("Previous device");
-    fireEvent.click(prevButton);
-
-    expect(mockOnIndexChange).not.toHaveBeenCalled();
-  });
-
-  it("does not change index when clicking disabled next arrow", () => {
-    render(
-      <DeviceSwiper devices={mockDevices} currentIndex={2} onIndexChange={mockOnIndexChange}>
-        <div>Device Content</div>
-      </DeviceSwiper>
-    );
-
-    const nextButton = screen.getByLabelText("Next device");
-    fireEvent.click(nextButton);
-
-    expect(mockOnIndexChange).not.toHaveBeenCalled();
   });
 
   it("calls onIndexChange when dot clicked", () => {

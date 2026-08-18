@@ -60,8 +60,14 @@ describe("LanguageSelector", () => {
     render(<LanguageSelector />);
     fireEvent.click(screen.getByRole("button", { name: /language|select language/i }));
 
+    const options = screen.getAllByRole("option");
+    // Every option has an aria-selected attribute
+    for (const option of options) {
+      expect(option).toHaveAttribute("aria-selected");
+    }
+
     // Active option (en) should have aria-selected="true"
-    const activeOption = screen.getAllByRole("option").find(
+    const activeOption = options.find(
       (o) => o.getAttribute("aria-selected") === "true"
     );
     expect(activeOption).toBeDefined();
@@ -103,12 +109,6 @@ describe("LanguageSelector", () => {
     expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
   });
 
-  it("has aria-label on the toggle button", () => {
-    render(<LanguageSelector />);
-    const button = screen.getByRole("button", { name: /language|select language/i });
-    expect(button).toHaveAttribute("aria-label");
-  });
-
   it("sets aria-expanded on toggle button", () => {
     render(<LanguageSelector />);
     const button = screen.getByRole("button", { name: /language|select language/i });
@@ -116,22 +116,6 @@ describe("LanguageSelector", () => {
 
     fireEvent.click(button);
     expect(button).toHaveAttribute("aria-expanded", "true");
-  });
-
-  it("listbox has role='listbox'", () => {
-    render(<LanguageSelector />);
-    fireEvent.click(screen.getByRole("button", { name: /language|select language/i }));
-    expect(screen.getByRole("listbox")).toBeInTheDocument();
-  });
-
-  it("options have role='option' and aria-selected", () => {
-    render(<LanguageSelector />);
-    fireEvent.click(screen.getByRole("button", { name: /language|select language/i }));
-    const options = screen.getAllByRole("option");
-    expect(options.length).toBeGreaterThan(0);
-    for (const option of options) {
-      expect(option).toHaveAttribute("aria-selected");
-    }
   });
 
   it("selects locale on Enter key press and closes dropdown", () => {

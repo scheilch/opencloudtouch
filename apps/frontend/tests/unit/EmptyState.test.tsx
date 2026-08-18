@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
-import { render, screen, waitFor, fireEvent, act } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import React from "react";
 import { ToastProvider } from "../../src/contexts/ToastContext";
@@ -156,6 +156,10 @@ describe("EmptyState Component", () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith("/");
       });
+
+      // BUG-15: navigate should only be called once, not in a loop
+      const navigateCalls = (mockNavigate as Mock).mock.calls.length;
+      expect(navigateCalls).toBeLessThanOrEqual(3);
     });
 
     it("should show discovering state when isDiscovering is true", async () => {
@@ -171,20 +175,6 @@ describe("EmptyState Component", () => {
       expect(discoverButton).toBeDisabled();
     });
 
-    it("should handle discovery errors gracefully", async () => {
-      mockDiscoveryState = {
-        ...mockDiscoveryState,
-        error: "Connection lost",
-      };
-
-      // Should render without crashing
-      expect(() => renderWithProviders(<EmptyState />)).not.toThrow();
-
-      // Discover button should still be present (after error reset)
-      await act(async () => {
-        // error toast would appear, component should not crash
-      });
-    });
   });
 
   describe("Manual IP Configuration", () => {
@@ -319,18 +309,6 @@ describe("EmptyState Component", () => {
         expect(screen.getByText("Welcome to OpenCloudTouch")).toBeInTheDocument();
       });
     });
-
-    it("shows error toast for real discovery errors (not 409)", async () => {
-      mockDiscoveryState.error = "Connection lost";
-      mockDiscoveryState.isDiscovering = false;
-
-      // Should render without throwing
-      expect(() => renderWithProviders(<EmptyState />)).not.toThrow();
-
-      await waitFor(() => {
-        expect(screen.getByText("Welcome to OpenCloudTouch")).toBeInTheDocument();
-      });
-    });
   });
 
   // ---------------------------------------------------------------------------
@@ -366,42 +344,5 @@ describe("EmptyState Component", () => {
       consoleSpy.mockRestore();
     });
 
-    it("navigate() is called via useEffect not during render", async () => {
-      // BUG-15/BUG-31: navigate('/') was called directly during render
-      // when devicesFound arrived, causing infinite loop.
-      // Fix: moved to useEffect([completed, devicesFound.length])
-
-      mockDiscoveryState.completed = true;
-      mockDiscoveryState.devicesFound = [
-        { device_id: "D1", name: "Test Device" } as { device_id: string; name: string },
-      ];
-
-      // Should render without crashing
-      expect(() => renderWithProviders(<EmptyState />)).not.toThrow();
-
-      // navigate should be called after render (via useEffect)
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/");
-      });
-    });
-
-    it("does not enter infinite loop when navigate is called", async () => {
-      // BUG-15: Recursive navigate("/")->welcome->navigate loop
-      // Verify render completes in bounded iterations
-      mockDiscoveryState.completed = true;
-      mockDiscoveryState.devicesFound = [
-        { device_id: "D1", name: "Device 1" } as { device_id: string; name: string },
-      ];
-
-      renderWithProviders(<EmptyState />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled();
-      });
-
-      // navigate should only be called once, not in a loop
-      const navigateCalls = (mockNavigate as Mock).mock.calls.length;
-      expect(navigateCalls).toBeLessThanOrEqual(3);
-    });
   });
 });

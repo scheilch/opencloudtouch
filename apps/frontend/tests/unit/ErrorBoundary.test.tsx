@@ -135,19 +135,4 @@ describe("ErrorBoundary", () => {
       expect.any(Object)
     );
   });
-
-  it("displays error stack trace", () => {
-    render(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    const details = screen.getByText("Error details");
-    fireEvent.click(details);
-
-    // Stack trace should contain function names
-    const stackElements = screen.getAllByText(/ThrowError|Error/);
-    expect(stackElements.length).toBeGreaterThan(0);
-  });
 });

@@ -11,12 +11,6 @@ describe("NotFound page", () => {
     expect(screen.getByText("404")).toBeInTheDocument();
   });
 
-  it("renders navigation button", () => {
-    render(<NotFound />);
-    const button = screen.getByRole("button");
-    expect(button).toBeInTheDocument();
-  });
-
   it("clicking the back button does not throw", () => {
     render(<NotFound />);
     const button = screen.getByRole("button");
