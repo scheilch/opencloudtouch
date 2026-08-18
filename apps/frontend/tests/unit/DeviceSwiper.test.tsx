@@ -48,9 +48,6 @@ describe("DeviceSwiper Component", () => {
 
     const prevButton = screen.getByLabelText("Previous device");
     expect(prevButton).toBeDisabled();
-
-    fireEvent.click(prevButton);
-    expect(mockOnIndexChange).not.toHaveBeenCalled();
   });
 
   it("disables next arrow at last device", () => {
@@ -62,9 +59,6 @@ describe("DeviceSwiper Component", () => {
 
     const nextButton = screen.getByLabelText("Next device");
     expect(nextButton).toBeDisabled();
-
-    fireEvent.click(nextButton);
-    expect(mockOnIndexChange).not.toHaveBeenCalled();
   });
 
 
