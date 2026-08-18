@@ -16,6 +16,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vite
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import React from "react";
+import * as ToastContextModule from "../../src/contexts/ToastContext";
 import { ToastProvider } from "../../src/contexts/ToastContext";
 import EmptyState from "../../src/components/EmptyState";
 import { QueryWrapper } from "../utils/reactQueryTestUtils";
@@ -290,10 +291,11 @@ describe("EmptyState Component", () => {
 
   describe("BUG-16: 409 Conflict → info toast (not error)", () => {
     it("shows info toast when discovery is already in progress", async () => {
-      const _mockShowToast = vi.fn();
-      // We can't easily intercept from outside, so we verify
-      // by checking what the component renders when error contains "already in progress"
-      // The real test is in the behavior: error toast uses correct type
+      const mockShowToast = vi.fn();
+      const useToastSpy = vi.spyOn(ToastContextModule, "useToast").mockReturnValue({
+        show: mockShowToast,
+        hide: vi.fn(),
+      });
 
       // Set error state to simulate 409 conflict response
       mockDiscoveryState.error = "Discovery already in progress";
@@ -301,13 +303,21 @@ describe("EmptyState Component", () => {
 
       renderWithProviders(<EmptyState />);
 
-      // After render, the useEffect should fire with discoveryError
-      // and call showToast with "info" type (not "error")
-      // We verify the component doesn't crash (previously it crashed with wrong toast type)
+      // The useEffect fires with discoveryError and must call showToast with
+      // the "info" type (not "error") — this is BUG-16's actual assertion,
+      // not just "the component didn't crash".
       await waitFor(() => {
-        // If the component renders without crashing and shows content, BUG-16 is not regressed
-        expect(screen.getByText("Welcome to OpenCloudTouch")).toBeInTheDocument();
+        expect(mockShowToast).toHaveBeenCalledWith(
+          "Device search already running. Please wait...",
+          "info"
+        );
       });
+
+      // vi.clearAllMocks() (in this file's beforeEach and the global
+      // afterEach) clears call history but not the mocked implementation, so
+      // restore it explicitly to avoid leaking a fake useToast into later
+      // tests that rely on the real ToastProvider.
+      useToastSpy.mockRestore();
     });
   });
 

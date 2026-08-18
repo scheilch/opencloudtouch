@@ -102,14 +102,14 @@ describe("About page", () => {
     setupHealthMock();
     mockFetchWith({ ok: true, text: () => Promise.resolve(CSV_HEADER) });
 
-    render(
+    const { container } = render(
       <MemoryRouter>`n          <QueryWrapper>`n            <About />
         </QueryWrapper>
       </MemoryRouter>,
     );
 
     await waitFor(() => {
-      expect(screen.queryByText("Suppâ¤ï¸rters")).toBeNull();  // check-mojibake: skip
+      expect(container.querySelectorAll(".supporter-name-wimmelbild")).toHaveLength(0);
     });
   });
 

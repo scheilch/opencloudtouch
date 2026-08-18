@@ -66,11 +66,22 @@ describe("LanguageSelector", () => {
       expect(option).toHaveAttribute("aria-selected");
     }
 
-    // Active option (en) should have aria-selected="true"
-    const activeOption = options.find(
-      (o) => o.getAttribute("aria-selected") === "true"
+    // The "en" option specifically (the mocked i18n.language) should be
+    // marked active and show the checkmark — not just some option.
+    const enOption = options.find(
+      (o) => o.textContent?.includes("English") || o.textContent?.includes("EN")
     );
-    expect(activeOption).toBeDefined();
+    expect(enOption).toBeDefined();
+    expect(enOption).toHaveAttribute("aria-selected", "true");
+    expect(enOption?.querySelector(".lang-option-check")).not.toBeNull();
+    expect(enOption?.textContent).toContain("✓");
+
+    // No other option should be marked active or show the checkmark.
+    const otherOptions = options.filter((o) => o !== enOption);
+    for (const option of otherOptions) {
+      expect(option).toHaveAttribute("aria-selected", "false");
+      expect(option.querySelector(".lang-option-check")).toBeNull();
+    }
   });
 
   it("calls changeLanguage and closes dropdown on locale select", () => {
