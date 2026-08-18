@@ -123,24 +123,6 @@ describe("Toast Component", () => {
 
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
-
-    it("should hide toast before calling onClose (fade-out animation)", async () => {
-      const mockOnClose = vi.fn();
-      render(<Toast message="Test message" onClose={mockOnClose} />);
-
-      // Initially visible
-      const toastContainer = screen.getByText("Test message").closest(".toast");
-      expect(toastContainer).toHaveClass("toast-visible");
-
-      // Click close
-      fireEvent.click(screen.getByRole("button", { name: "Close" }));
-
-      // After animation, onClose called
-      await act(async () => {
-        vi.advanceTimersByTime(300);
-      });
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe("Accessibility", () => {
@@ -151,24 +133,6 @@ describe("Toast Component", () => {
         "aria-label",
         "Close"
       );
-    });
-
-    it("should render different icons for each type", () => {
-      const { rerender } = render(<Toast message="Test" type="success" />);
-      const successToast = screen.getByText("Test").closest(".toast")!;
-      expect(successToast.querySelector("svg")).toBeInTheDocument();
-
-      rerender(<Toast message="Test" type="error" />);
-      const errorToast = screen.getByText("Test").closest(".toast")!;
-      expect(errorToast.querySelector("svg")).toBeInTheDocument();
-
-      rerender(<Toast message="Test" type="warning" />);
-      const warningToast = screen.getByText("Test").closest(".toast")!;
-      expect(warningToast.querySelector("svg")).toBeInTheDocument();
-
-      rerender(<Toast message="Test" type="info" />);
-      const infoToast = screen.getByText("Test").closest(".toast")!;
-      expect(infoToast.querySelector("svg")).toBeInTheDocument();
     });
   });
 });

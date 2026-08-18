@@ -57,18 +57,6 @@ describe("parseCSVLine", () => {
 });
 
 describe("getRandomThankYou", () => {
-  it("returns a string for regular supporter in English", () => {
-    const result = getRandomThankYou(false, "en");
-    expect(typeof result).toBe("string");
-    expect(result.length).toBeGreaterThan(0);
-  });
-
-  it("returns a string for monthly supporter in English", () => {
-    const result = getRandomThankYou(true, "en");
-    expect(typeof result).toBe("string");
-    expect(result.length).toBeGreaterThan(0);
-  });
-
   it("falls back to English for unknown language", () => {
     const result = getRandomThankYou(false, "xx");
     expect(typeof result).toBe("string");

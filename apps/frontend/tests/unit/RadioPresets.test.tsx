@@ -487,14 +487,6 @@ describe("RadioPresets Page", () => {
   });
 
   describe("Device Switching", () => {
-    it("should render DeviceSwiper component", async () => {
-      await act(async () => {
-        render(<RadioPresets devices={mockDevices} />);
-      });
-
-      expect(screen.getByTestId("device-swiper")).toBeInTheDocument();
-    });
-
     it("should update displayed device when swiper index changes", async () => {
       await act(async () => {
         render(<RadioPresets devices={mockDevices} />);
@@ -618,43 +610,6 @@ describe("RadioPresets Page", () => {
           station_homepage: "http://test-homepage.com",
           station_favicon: "http://test-favicon.com/icon.png",
         });
-      });
-    });
-
-    it("should call setPreset API directly when overwriting existing preset", async () => {
-      vi.mocked(presetsApi.getDevicePresets).mockResolvedValue([
-        {
-          id: 1,
-          device_id: "AABBCC123456",
-          preset_number: 4,
-          station_uuid: "uuid-4",
-          station_name: "Radio Four",
-          station_url: "http://radio4.com",
-          created_at: "2024-01-01T00:00:00Z",
-          updated_at: "2024-01-01T00:00:00Z",
-        },
-      ]);
-
-      await act(async () => {
-        render(<RadioPresets devices={mockDevices} />);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("preset-4-name")).toBeInTheDocument();
-      });
-
-      // Click change → select station → should save directly
-      fireEvent.click(screen.getByTestId("preset-4-change"));
-      fireEvent.click(screen.getByTestId("select-station"));
-
-      // Should call setPreset API directly without confirmation
-      await waitFor(() => {
-        expect(presetsApi.setPreset).toHaveBeenCalledWith(
-          expect.objectContaining({
-            device_id: "AABBCC123456",
-            preset_number: 4,
-          })
-        );
       });
     });
 

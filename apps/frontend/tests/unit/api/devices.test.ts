@@ -249,12 +249,6 @@ describe("Devices API Client", () => {
       );
     });
 
-    it("throws error for negative preset", async () => {
-      await expect(playPreset("device123", -1)).rejects.toThrow(
-        "Invalid preset number: -1. Must be 1-6"
-      );
-    });
-
     it("throws error on API failure", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,

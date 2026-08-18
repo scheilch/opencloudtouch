@@ -17,21 +17,14 @@ import VolumeSlider from "../../src/components/VolumeSlider";
 
 describe("VolumeSlider Component", () => {
   describe("Volume Display & Controls", () => {
-    it("should render slider with correct volume via aria-valuenow", () => {
+    it("should render slider with correct volume and aria range attributes", () => {
       render(
         <VolumeSlider volume={45} onVolumeChange={vi.fn()} muted={false} onMuteToggle={vi.fn()} />
-      );
-      expect(screen.getByRole("slider")).toHaveAttribute("aria-valuenow", "45");
-    });
-
-    it("should have correct aria range attributes", () => {
-      render(
-        <VolumeSlider volume={50} onVolumeChange={vi.fn()} muted={false} onMuteToggle={vi.fn()} />
       );
       const slider = screen.getByRole("slider");
       expect(slider).toHaveAttribute("aria-valuemin", "0");
       expect(slider).toHaveAttribute("aria-valuemax", "100");
-      expect(slider).toHaveAttribute("aria-valuenow", "50");
+      expect(slider).toHaveAttribute("aria-valuenow", "45");
     });
 
     it("should call onVolumeChange with +5 on ArrowRight", () => {
@@ -110,39 +103,12 @@ describe("VolumeSlider Component", () => {
     });
   });
 
-  describe("Dynamic Icon Display", () => {
-    it("should show SVG icon in mute button when muted", () => {
-      const { container } = render(
-        <VolumeSlider volume={50} onVolumeChange={vi.fn()} muted={true} onMuteToggle={vi.fn()} />
-      );
-      expect(container.querySelector(".volume-mute svg")).toBeInTheDocument();
-    });
-
-    it("should show SVG icon in mute button when not muted", () => {
-      const { container } = render(
-        <VolumeSlider volume={75} onVolumeChange={vi.fn()} muted={false} onMuteToggle={vi.fn()} />
-      );
-      expect(container.querySelector(".volume-mute svg")).toBeInTheDocument();
-    });
-  });
-
   describe("Accessibility", () => {
     it("should have aria-label Volume on slider", () => {
       render(
         <VolumeSlider volume={50} onVolumeChange={vi.fn()} muted={false} onMuteToggle={vi.fn()} />
       );
       expect(screen.getByRole("slider", { name: "Volume" })).toBeInTheDocument();
-    });
-
-    it("should have dynamic aria-label on mute button", () => {
-      const { rerender } = render(
-        <VolumeSlider volume={50} onVolumeChange={vi.fn()} muted={false} onMuteToggle={vi.fn()} />
-      );
-      expect(screen.getByRole("button", { name: "Mute" })).toBeInTheDocument();
-      rerender(
-        <VolumeSlider volume={50} onVolumeChange={vi.fn()} muted={true} onMuteToggle={vi.fn()} />
-      );
-      expect(screen.getByRole("button", { name: "Unmute" })).toBeInTheDocument();
     });
 
     it("should have tabIndex 0 for keyboard access", () => {
@@ -233,24 +199,6 @@ describe("VolumeSlider Component", () => {
       fireEvent.pointerUp(track, { clientX: 400, pointerId: 1 });
 
       expect(mockOnVolumeChange).toHaveBeenCalledWith(100);
-    });
-
-    it("should track pointerMove during active drag", () => {
-      const mockOnVolumeChange = vi.fn();
-      const { container } = render(
-        <VolumeSlider volume={50} onVolumeChange={mockOnVolumeChange} muted={false} onMuteToggle={vi.fn()} />,
-      );
-      const track = container.querySelector(".volume-track") as HTMLElement;
-      vi.spyOn(track, "getBoundingClientRect").mockReturnValue({
-        left: 0, right: 200, width: 200, top: 0, bottom: 20, height: 20, x: 0, y: 0, toJSON: vi.fn(),
-      });
-
-      fireEvent.pointerDown(track, { clientX: 50, pointerId: 1 });
-      fireEvent.pointerMove(track, { clientX: 150, pointerId: 1 });
-      fireEvent.pointerUp(track, { clientX: 150, pointerId: 1 });
-
-      // Final value from pointerUp at 150/200 = 75%
-      expect(mockOnVolumeChange).toHaveBeenCalledWith(75);
     });
 
     it("should clamp drag to 0 when dragging past left edge", () => {

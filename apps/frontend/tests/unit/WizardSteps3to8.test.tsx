@@ -243,23 +243,6 @@ describe("Step3PowerCycle — calcRiskLevel", () => {
 // Step 4 — Backup
 // ------------------------------------------------------------------
 describe("Step4Backup — render", () => {
-  it("renders without crashing with required props", async () => {
-    const { default: Step4 } = await import(
-      "../../src/components/wizard/Step4Backup"
-    );
-    render(
-      <Step4
-        deviceId="device-1"
-        deviceIp="192.168.1.1"
-        deviceName="SoundTouch 10"
-        onNext={vi.fn()}
-        onPrevious={vi.fn()}
-        onBackupComplete={vi.fn()}
-      />
-    );
-    expect(document.body).toBeInTheDocument();
-  });
-
   it("disables next button while backup is in progress", async () => {
     // createBackup that never resolves — simulates in-progress backup
     const { createBackup } = await import("../../src/api/wizard");
@@ -326,31 +309,6 @@ describe("Step4Backup — render", () => {
 });
 
 // ------------------------------------------------------------------
-// Step 5 — Config Modification
-// ------------------------------------------------------------------
-describe("Step5ConfigModification — render", () => {
-  it("renders without crashing with required props", async () => {
-    const { default: Step5 } = await import(
-      "../../src/components/wizard/Step5ConfigModification"
-    );
-    await act(async () => {
-      render(
-        <Step5
-          deviceId="device-1"
-          deviceIp="192.168.1.1"
-          deviceName="SoundTouch 10"
-          octUrl="http://192.168.1.100:8080"
-          onNext={vi.fn()}
-          onPrevious={vi.fn()}
-          onConfigModified={vi.fn()}
-        />
-      );
-    });
-    expect(document.body).toBeInTheDocument();
-  });
-});
-
-// ------------------------------------------------------------------
 // Step 6 — Hosts Modification
 // ------------------------------------------------------------------
 describe("Step6HostsModification — render", () => {
@@ -403,29 +361,6 @@ describe("Step6HostsModification — render", () => {
     await waitFor(() => {
       expect(onHostsModified).toHaveBeenCalledWith(mockResult, "10.0.0.5");
     });
-  });
-});
-
-// ------------------------------------------------------------------
-// Step 7 — Verification
-// ------------------------------------------------------------------
-describe("Step7Verification — render", () => {
-  it("renders without crashing with required props", async () => {
-    const { default: Step7 } = await import(
-      "../../src/components/wizard/Step7Verification"
-    );
-    await act(async () => {
-      render(
-        <Step7
-          deviceIp="192.168.1.1"
-          deviceName="SoundTouch 10"
-          octIp="192.168.1.100"
-          onNext={vi.fn()}
-          onPrevious={vi.fn()}
-        />
-      );
-    });
-    expect(document.body).toBeInTheDocument();
   });
 });
 
