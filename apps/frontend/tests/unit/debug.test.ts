@@ -94,10 +94,30 @@ describe("debug utilities", () => {
     });
 
     it("skips the localStorage-backed init when window is undefined at module load", async () => {
+      // A prior (browser-mode) import earlier in this file already installed
+      // a persisting getter/setter on globalThis.__OCT_DEBUG__. Remove it so
+      // this test observes only what *this* import does, not leftover state.
+      delete (globalThis as { __OCT_DEBUG__?: boolean }).__OCT_DEBUG__;
+      globalThis.__OCT_DEBUG__ = false;
+      localStorage.setItem("oct_debug", "true");
+
       vi.stubGlobal("window", undefined);
       vi.resetModules();
 
-      await expect(import("../../src/utils/debug")).resolves.toBeDefined();
+      await import("../../src/utils/debug");
+
+      // The module-scope guard should have skipped reading localStorage into
+      // __OCT_DEBUG__, so the flag stays at its pre-import value (false)
+      // instead of being overwritten with the persisted "true".
+      expect(globalThis.__OCT_DEBUG__).toBe(false);
+
+      // It should also have skipped installing the persisting getter/setter,
+      // so assigning to __OCT_DEBUG__ is now a plain write that does not
+      // propagate to localStorage (which stays at its pre-import value).
+      globalThis.__OCT_DEBUG__ = true;
+      expect(localStorage.getItem("oct_debug")).toBe("true");
+      globalThis.__OCT_DEBUG__ = false;
+      expect(localStorage.getItem("oct_debug")).not.toBe("false");
     });
 
     it("syncDebugFromBackendLevel no-ops when window is undefined", async () => {

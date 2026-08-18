@@ -27,8 +27,10 @@ describe("ToastContext", () => {
   });
 
   it("renders the toast with the default type and duration when omitted", () => {
-    let captured: { show: (message: string, type?: string, duration?: number) => void } | null =
-      null;
+    let captured: {
+      show: (message: string, type?: string, duration?: number) => void;
+      hide: () => void;
+    } | null = null;
 
     function Capture() {
       captured = useToast();
@@ -47,6 +49,10 @@ describe("ToastContext", () => {
 
     expect(getByTestId("mock-toast")).toHaveTextContent("Hello");
     expect(getByTestId("mock-toast")).toHaveAttribute("data-type", "info");
+
+    act(() => captured!.hide());
+
+    expect(queryByTestId("mock-toast")).toBeNull();
   });
 
   it("throws when used outside a ToastProvider", () => {

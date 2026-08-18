@@ -12,7 +12,7 @@ const mockGetDeviceCapabilities = vi.fn();
 
 vi.mock("../../../src/api/devices", () => ({
   getDevices: (...args: unknown[]) => mockGetDevices(...args),
-  syncDevices: (...args: unknown[]) => mockSyncDevices(...args),
+  syncDevices: (request: unknown) => mockSyncDevices(request),
   getDeviceCapabilities: (...args: unknown[]) => mockGetDeviceCapabilities(...args),
 }));
 
