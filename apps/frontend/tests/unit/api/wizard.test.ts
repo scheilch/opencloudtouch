@@ -156,6 +156,15 @@ describe("Wizard API Client — Finalize & Verify", () => {
         expected_ip: null,
       });
 
+      // Inspect the actual outgoing request body — a dropped or renamed
+      // `expected_ip` field would still pass if we only checked the
+      // (mocked) response, so assert on what was actually sent.
+      const [, requestInit] = mockFetch.mock.calls[0];
+      expect(JSON.parse(requestInit.body)).toEqual({
+        hostname: "example.com",
+        expected_ip: null,
+      });
+
       expect(result.matches_expected).toBeNull();
     });
   });

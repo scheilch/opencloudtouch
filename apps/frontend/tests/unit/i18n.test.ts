@@ -357,11 +357,11 @@ describe("de ↔ en value divergence", () => {
       );
     });
 
-    // Report suspicious keys but don't fail hard — just flag if > 15% are copies
+    // Report suspicious keys but don't fail hard for a handful of copies —
+    // just flag if > 15% look like copy-paste. Asserted unconditionally (no
+    // `if` guard) so the test actually executes an assertion on every run.
     const suspiciousPercent = (suspicious.length / deEntries.length) * 100;
-    if (suspiciousPercent > 15) {
-      expect(suspicious.map((e) => e.key)).toEqual([]);
-    }
+    expect(suspiciousPercent).toBeLessThanOrEqual(15);
   });
 });
 

@@ -132,7 +132,16 @@ describe("useVolume – debounced volume setter", () => {
     const { result } = renderHook(() => useVolume("device-123"));
     await act(() => vi.advanceTimersByTimeAsync(100));
 
-    // Rapid slider movements
+    // Reset and mock for the debounced API call
+    mockFetch.mockImplementation(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ actual: 80, muted: false }),
+    }));
+    mockFetch.mockClear();
+
+    // Rapid slider movements — each call clears the previous debounce timer,
+    // so only the LAST value (80) should ever reach the API.
     act(() => {
       result.current.setDeviceVolume(60);
       result.current.setDeviceVolume(70);
@@ -142,17 +151,17 @@ describe("useVolume – debounced volume setter", () => {
     // Only final value as optimistic update
     expect(result.current.volume).toBe(80);
 
-    // Reset and mock for the debounced API call
-    mockFetch.mockImplementation(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({ actual: 80, muted: false }),
-    }));
-
-    const callsBefore = mockFetch.mock.calls.length;
     await act(() => vi.advanceTimersByTimeAsync(350));
 
-    // At least one API call fired after debounce
-    expect(mockFetch.mock.calls.length).toBeGreaterThan(callsBefore);
+    // Exactly one PUT .../volume call fired — the three rapid changes coalesced
+    // into a single request, not three.
+    const volumePutCalls = mockFetch.mock.calls.filter(
+      ([url, init]) => String(url).includes("/volume") && (init as RequestInit | undefined)?.method === "PUT"
+    );
+    expect(volumePutCalls).toHaveLength(1);
+
+    // And that single request carries the LAST value (80), not an intermediate one.
+    const [, requestInit] = volumePutCalls[0];
+    expect(JSON.parse((requestInit as RequestInit).body as string)).toEqual({ level: 80 });
   });
 });

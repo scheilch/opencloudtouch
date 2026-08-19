@@ -10,6 +10,20 @@ import React from "react";
 import SetupWizard from "../../../src/pages/SetupWizard";
 import type { Device } from "../../../src/api/devices";
 
+// tests/setup.ts mocks react-router's useNavigate with `() => vi.fn()`, which
+// hands out a fresh, unassertable spy on every call. Override it locally with
+// a stable mock so we can assert what it was called with (precedent:
+// NotFound.test.tsx / EmptyState.test.tsx do the same per-file override).
+const mockNavigate = vi.fn();
+vi.mock("react-router", async () => {
+  const actual = await vi.importActual("react-router");
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+    useSearchParams: () => [new URLSearchParams(), vi.fn()],
+  };
+});
+
 // Mock framer-motion to avoid animation issues in jsdom
 vi.mock("framer-motion", () => ({
   motion: {
@@ -292,7 +306,10 @@ describe("SetupWizard (pages/SetupWizard)", () => {
 
       // Click skip
       fireEvent.click(screen.getByRole("button", { name: /verify überspringen/i }));
-      // onSkip triggers navigate — no error expected
+
+      // onSkip navigates home, carrying the auto-selected device's id as a
+      // query param (mockDevices[0] is auto-selected since no deviceId is in the URL).
+      expect(mockNavigate).toHaveBeenCalledWith("/?device=ST30-001");
     });
   });
 });
