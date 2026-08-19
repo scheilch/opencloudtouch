@@ -379,7 +379,12 @@ describe("useNowPlaying – SSE push events", () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: () =>
-        Promise.resolve({ source: "INTERNET_RADIO", state: "PLAY_STATE", station_name: "WDR 2" }),
+        Promise.resolve({
+          source: "INTERNET_RADIO",
+          state: "PLAY_STATE",
+          station_name: "WDR 2",
+          artist: "Old Artist",
+        }),
     });
 
     const { result } = renderHook(() => useNowPlaying("device-42"));
@@ -390,6 +395,9 @@ describe("useNowPlaying – SSE push events", () => {
     )![2] as (data: Record<string, unknown>) => void;
 
     act(() => {
+      // No `artist` field here: a full replace (correct stationChanged detection)
+      // drops it; a buggy stationChanged that ignores station_name would fall
+      // through to the merge branch and keep "Old Artist" instead.
       npCallback({
         device_id: "device-42",
         source: "INTERNET_RADIO",
@@ -399,6 +407,7 @@ describe("useNowPlaying – SSE push events", () => {
     });
 
     expect(result.current.nowPlaying?.station_name).toBe("WDR 4");
+    expect(result.current.nowPlaying?.artist).toBeUndefined();
   });
 
   it("replaces state on track change and preserves prior artwork when incoming has none", async () => {
