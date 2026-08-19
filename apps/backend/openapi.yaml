@@ -433,6 +433,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/devices/{device_id}/reboot:
+    get:
+      tags:
+      - Devices
+      summary: Reboot Device
+      description: Reboot a device.
+      operationId: reboot_device_api_devices__device_id__reboot_get
+      parameters:
+      - name: device_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Device Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/presets/set:
     post:
       tags:
