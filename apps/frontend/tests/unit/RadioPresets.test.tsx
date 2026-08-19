@@ -31,6 +31,17 @@ vi.mock("../../src/api/presets", () => ({
   syncPresetsFromDevice: vi.fn(),
 }));
 
+// Partially mock the devices API: keep the real togglePlayPause/power/deleteDeviceById
+// implementations (they go through the globally-mocked fetch), but replace playPreset
+// with a spy so tests can assert it was actually invoked.
+vi.mock("../../src/api/devices", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../src/api/devices")>();
+  return {
+    ...actual,
+    playPreset: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 // Mock device hooks
 const mockSetDeviceVolume = vi.fn();
 const mockToggleMute = vi.fn();
@@ -51,6 +62,7 @@ vi.mock("../../src/hooks/useNowPlaying", () => ({
 
 import * as presetsApi from "../../src/api/presets";
 import type { PresetResponse } from "../../src/api/presets";
+import * as devicesApi from "../../src/api/devices";
 import type { ReactNode } from "react";
 
 // Mock child components
@@ -352,12 +364,16 @@ describe("RadioPresets Page", () => {
         expect(screen.getByTestId("preset-3-play")).toBeInTheDocument();
       });
 
-      // Click play - should not throw error (TODO: backend API in Phase 3)
+      // Click play
       await act(async () => {
         fireEvent.click(screen.getByTestId("preset-3-play"));
       });
 
-      // Verify play button still exists after click
+      // The click must actually trigger the play API call, not just leave the
+      // button rendered.
+      await waitFor(() => {
+        expect(devicesApi.playPreset).toHaveBeenCalledWith("AABBCC123456", 3);
+      });
       expect(screen.getByTestId("preset-3-play")).toBeInTheDocument();
     });
   });

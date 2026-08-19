@@ -44,7 +44,7 @@ vi.mock("framer-motion", () => ({
 // Step 3 — Power Cycle
 // ------------------------------------------------------------------
 describe("Step3PowerCycle — render", () => {
-  it("renders without crashing with required props", async () => {
+  it("renders the restart instructions and the initial waiting status", async () => {
     const { default: Step3 } = await import(
       "../../src/components/wizard/Step3PowerCycle"
     );
@@ -56,10 +56,24 @@ describe("Step3PowerCycle — render", () => {
         onPrevious={vi.fn()}
       />
     );
-    expect(document.body).toBeInTheDocument();
+
+    // Real, specific content that would break if the step's copy or structure
+    // were removed — not just "the page rendered something".
+    expect(screen.getByRole("heading", { name: "Restart device" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Instructions" })).toBeInTheDocument();
+    expect(screen.getByText("Insert USB drive")).toBeInTheDocument();
+    expect(screen.getByText(/Waiting for device restart/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Check now/i })).toBeInTheDocument();
   });
 
-  it("renders a button for SSH decision", async () => {
+  it("renders the SSH decision buttons with their real accessible names once ports are available", async () => {
+    const { checkPorts } = await import("../../src/api/wizard");
+    (checkPorts as ReturnType<typeof vi.fn>).mockResolvedValue({
+      success: true,
+      has_ssh: true,
+      message: "SSH access enabled",
+    });
+
     const { default: Step3 } = await import(
       "../../src/components/wizard/Step3PowerCycle"
     );
@@ -71,9 +85,20 @@ describe("Step3PowerCycle — render", () => {
         onPrevious={vi.fn()}
       />
     );
-    // At least one button must be rendered (previous, SSH decision)
-    const buttons = screen.getAllByRole("button");
-    expect(buttons.length).toBeGreaterThanOrEqual(1);
+
+    const checkBtn = screen.getByRole("button", { name: /Check now/i });
+    await act(async () => {
+      checkBtn.click();
+    });
+
+    // Not "at least one button exists" — the exact SSH-decision buttons must
+    // expose their real, translated accessible names.
+    expect(
+      screen.getByRole("button", { name: /Enable SSH permanently/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Do not keep permanently/i })
+    ).toBeInTheDocument();
   });
 });
 
@@ -312,7 +337,7 @@ describe("Step4Backup — render", () => {
 // Step 6 — Hosts Modification
 // ------------------------------------------------------------------
 describe("Step6HostsModification — render", () => {
-  it("renders without crashing with required props", async () => {
+  it("renders the pre-filled server IP and the required domain list", async () => {
     const { default: Step6 } = await import(
       "../../src/components/wizard/Step6HostsModification"
     );
@@ -327,7 +352,15 @@ describe("Step6HostsModification — render", () => {
         onHostsModified={vi.fn()}
       />
     );
-    expect(document.body).toBeInTheDocument();
+
+    expect(screen.getByRole("heading", { name: "Modify hosts file" })).toBeInTheDocument();
+    // The OCT server IP field is pre-filled from the octIp prop, not left blank.
+    expect(screen.getByLabelText(/OpenCloudTouch server IP/i)).toHaveValue("192.168.1.100");
+    // A required (non-deselectable) domain from the real domain list must be shown.
+    expect(screen.getByText("bose.vtuner.com")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Modify hosts file now/i })
+    ).toBeInTheDocument();
   });
 
   it("calls onHostsModified with result and trimmed custom IP", async () => {
@@ -368,7 +401,7 @@ describe("Step6HostsModification — render", () => {
 // Step 8 — Completion
 // ------------------------------------------------------------------
 describe("Step8Completion — render", () => {
-  it("renders without crashing when backupPath is provided", async () => {
+  it("shows the backup location when a backup was created", async () => {
     const { default: Step8 } = await import(
       "../../src/components/wizard/Step8Completion"
     );
@@ -379,10 +412,16 @@ describe("Step8Completion — render", () => {
         onFinish={vi.fn()}
       />
     );
-    expect(document.body).toBeInTheDocument();
+
+    expect(screen.getByRole("heading", { name: "Congratulations!" })).toBeInTheDocument();
+    expect(
+      screen.getByText("SoundTouch 10 has been successfully configured for OpenCloudTouch.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("/backup/remote_services.bak")).toBeInTheDocument();
+    expect(screen.queryByText("No backup created")).not.toBeInTheDocument();
   });
 
-  it("renders without crashing when backupPath is null", async () => {
+  it("shows a no-backup warning when backupPath is null", async () => {
     const { default: Step8 } = await import(
       "../../src/components/wizard/Step8Completion"
     );
@@ -393,6 +432,11 @@ describe("Step8Completion — render", () => {
         onFinish={vi.fn()}
       />
     );
-    expect(document.body).toBeInTheDocument();
+
+    expect(screen.getByText("No backup created")).toBeInTheDocument();
+    expect(
+      screen.getByText(/No backup of your device was created/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByText("/backup/remote_services.bak")).not.toBeInTheDocument();
   });
 });

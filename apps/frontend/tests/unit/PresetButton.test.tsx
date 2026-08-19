@@ -255,6 +255,8 @@ describe("PresetButton Component", () => {
 
       const container = screen.getByTestId("preset-1");
       expect(container).toHaveClass("preset-disabled");
+      // The `preset?.station_name || t("presets.empty")` fallback must actually render.
+      expect(screen.getByText("No presets configured")).toBeInTheDocument();
     });
   });
 

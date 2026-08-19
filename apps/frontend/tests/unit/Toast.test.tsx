@@ -97,14 +97,26 @@ describe("Toast Component", () => {
       expect(mockOnClose).toHaveBeenCalledTimes(1);
     });
 
-    it("should not crash when onClose is not provided", async () => {
+    it("should not crash when onClose is not provided, and hides the toast", async () => {
       render(<Toast message="Test message" />);
+      expect(screen.getByText("Test message")).toBeInTheDocument();
 
-      // Advancing timers should not throw error (onClose?.() safe navigation)
-      await act(async () => {
-        vi.runAllTimers();
-      });
-      // No assertion needed - just verifying no crash
+      // Sole cover of the `if (onClose)` false arm inside the auto-hide timer:
+      // capture any throw explicitly instead of just letting an uncaught error
+      // fail the test implicitly.
+      let thrown: unknown = null;
+      try {
+        await act(async () => {
+          vi.runAllTimers();
+        });
+      } catch (err) {
+        thrown = err;
+      }
+      expect(thrown).toBeNull();
+
+      // The auto-hide path must still run to completion (isVisible -> false,
+      // component renders null) even though there's no onClose to call.
+      expect(screen.queryByText("Test message")).not.toBeInTheDocument();
     });
   });
 
