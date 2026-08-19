@@ -45,6 +45,16 @@ describe("detectLocale", () => {
     expect(detectLocale()).toBe("de");
   });
 
+  it("falls back to 'en' for unsupported browser language", () => {
+    vi.spyOn(navigator, "language", "get").mockReturnValue("ko-KR");
+    expect(detectLocale()).toBe("en");
+  });
+
+  it("returns 'de' for Austrian browser locale (resolves to UI locale)", () => {
+    vi.spyOn(navigator, "language", "get").mockReturnValue("de-AT");
+    expect(detectLocale()).toBe("de");
+  });
+
   it.each([
     ["en", "en"],
     ["de-CH", "de"],
@@ -53,7 +63,7 @@ describe("detectLocale", () => {
     ["it-IT", "it"],
     ["it-CH", "it"],
     ["zh-CN", "en"],
-  ])("detects locale %s resolves to %s", (browserLang, expected) => {
+  ])("detects locale %s resolves to %s (row 38 merge)", (browserLang, expected) => {
     localStorage.clear();
     vi.spyOn(navigator, "language", "get").mockReturnValue(browserLang);
     expect(detectLocale()).toBe(expected);
