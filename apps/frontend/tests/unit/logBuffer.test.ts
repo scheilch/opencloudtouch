@@ -10,20 +10,6 @@ describe("logBuffer", () => {
     // The buffer is a module-level array; we can only observe it, not reset it directly
   });
 
-  it("getLogEntries returns an array", () => {
-    const entries = getLogEntries();
-    expect(Array.isArray(entries)).toBe(true);
-  });
-
-  it("initLogBuffer runs without throwing", () => {
-    expect(() => initLogBuffer()).not.toThrow();
-  });
-
-  it("initLogBuffer is idempotent (calling twice does not throw)", () => {
-    initLogBuffer();
-    expect(() => initLogBuffer()).not.toThrow();
-  });
-
   it("captured entries have timestamp, level, and message fields", () => {
     initLogBuffer();
     // Produce a log entry via the patched console

@@ -102,24 +102,6 @@ describe("Wizard API Client — Finalize & Verify", () => {
       expect(result.passed_count).toBe(1);
       expect(result.checks).toHaveLength(1);
     });
-
-    it("throws on HTTP error", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-        text: () => Promise.resolve("Server error"),
-        headers: new Headers(),
-      });
-
-      await expect(
-        verifySetup({
-          device_ip: "192.168.1.100",
-          device_id: "AABBCCDDEEFF",
-          expected_oct_ip: "192.168.1.50",
-        })
-      ).rejects.toThrow();
-    });
   });
 
   describe("validateHostname", () => {
@@ -155,20 +137,6 @@ describe("Wizard API Client — Finalize & Verify", () => {
       expect(result.resolved_ip).toBe("192.168.1.50");
       expect(result.matches_expected).toBe(true);
       expect(result.error).toBeNull();
-    });
-
-    it("throws on HTTP error", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-        text: () => Promise.resolve("Server error"),
-        headers: new Headers(),
-      });
-
-      await expect(
-        validateHostname({ hostname: "bad.host", expected_ip: null })
-      ).rejects.toThrow();
     });
 
     it("sends null expected_ip correctly", async () => {

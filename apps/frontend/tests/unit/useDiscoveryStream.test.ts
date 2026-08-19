@@ -39,7 +39,7 @@ describe("useDiscoveryStream - BUG-35: SSE URL must not be localhost", () => {
     vi.unstubAllGlobals();
   });
 
-  it("should NOT use localhost in SSE URL (BUG-35)", () => {
+  it("validates SSE URL structure on startDiscovery (BUG-35)", () => {
     const { result } = renderHook(() => useDiscoveryStream(), {
       wrapper: QueryWrapper,
     });
@@ -49,52 +49,18 @@ describe("useDiscoveryStream - BUG-35: SSE URL must not be localhost", () => {
     });
 
     expect(capturedEventSourceUrl).not.toBeNull();
+    // Should NOT use localhost or port 7777
     expect(capturedEventSourceUrl).not.toContain("localhost");
-  });
-
-  it("should NOT use port 7777 in SSE URL (BUG-35)", () => {
-    const { result } = renderHook(() => useDiscoveryStream(), {
-      wrapper: QueryWrapper,
-    });
-
-    act(() => {
-      result.current.startDiscovery();
-    });
-
     expect(capturedEventSourceUrl).not.toContain("7777");
-  });
-
-  it("should use relative URL starting with /api (BUG-35)", () => {
-    const { result } = renderHook(() => useDiscoveryStream(), {
-      wrapper: QueryWrapper,
-    });
-
-    act(() => {
-      result.current.startDiscovery();
-    });
-
-    expect(capturedEventSourceUrl).not.toBeNull();
-
-    // URL should either be relative (/api/...) or use window origin
+    // Should use relative URL or same origin
     const url = capturedEventSourceUrl!;
     const isRelative = url.startsWith("/api/");
     const isAbsoluteToSameOrigin =
       (url.startsWith("http://") || url.startsWith("https://"))
         ? url.startsWith(window.location.origin)
         : false;
-
     expect(isRelative || isAbsoluteToSameOrigin).toBe(true);
-  });
-
-  it("should include /api/devices/discover/stream in URL (BUG-35)", () => {
-    const { result } = renderHook(() => useDiscoveryStream(), {
-      wrapper: QueryWrapper,
-    });
-
-    act(() => {
-      result.current.startDiscovery();
-    });
-
+    // Should include the correct endpoint
     expect(capturedEventSourceUrl).toContain("/api/devices/discover/stream");
   });
 

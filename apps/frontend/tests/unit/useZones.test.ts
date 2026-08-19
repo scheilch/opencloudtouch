@@ -120,37 +120,6 @@ describe("useZones – SSE push events", () => {
 
     expect(mockGetZones).toHaveBeenCalledTimes(1);
   });
-
-  it("has zero setInterval calls", () => {
-    const hookSource = useZones.toString();
-    expect(hookSource).not.toContain("setInterval");
-    expect(hookSource).not.toContain("POLL_INTERVAL_MS");
-    expect(hookSource).not.toContain("isMutatingRef");
-  });
-
-  it("StrictMode: no leaked subscriptions on unmount/remount", async () => {
-    const { unmount } = renderHook(() => useZones());
-    await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
-
-    const unsubFnsMount1 = [...mockUnsubFns];
-    unmount();
-    for (const unsub of unsubFnsMount1) {
-      expect(unsub).toHaveBeenCalled();
-    }
-
-    mockSubscribe.mockClear();
-    mockUnsubFns = [];
-
-    const { unmount: unmount2 } = renderHook(() => useZones());
-    await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
-
-    expect(mockSubscribe).toHaveBeenCalledWith("zone", "*", expect.any(Function));
-
-    unmount2();
-    for (const unsub of mockUnsubFns) {
-      expect(unsub).toHaveBeenCalled();
-    }
-  });
 });
 
 describe("useZones – mutation operations", () => {

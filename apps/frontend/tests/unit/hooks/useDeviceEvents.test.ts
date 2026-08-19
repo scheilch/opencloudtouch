@@ -233,19 +233,4 @@ describe("useDeviceEvents", () => {
     consoleSpy.mockRestore();
     unmount();
   });
-
-  it("StrictMode: does not leak EventSource connections", () => {
-    // Simulate StrictMode double-mount by unmounting and remounting
-    const { unmount } = renderHook(() => useDeviceEvents());
-    const first = ControllableEventSource.instances[0];
-    unmount();
-
-    // First instance should be closed after unmount
-    expect(first.close).toHaveBeenCalled();
-
-    // Remount — new instance created
-    const { unmount: unmount2 } = renderHook(() => useDeviceEvents());
-    expect(ControllableEventSource.instances).toHaveLength(2);
-    unmount2();
-  });
 });

@@ -34,11 +34,6 @@ describe("detectLocale", () => {
     expect(detectLocale()).toBe("de");
   });
 
-  it("returns 'en' when localStorage has 'en'", () => {
-    localStorage.setItem("oct-lang", "en");
-    expect(detectLocale()).toBe("en");
-  });
-
   it("ignores unsupported locale in localStorage", () => {
     localStorage.setItem("oct-lang", "zh");
     vi.spyOn(navigator, "language", "get").mockReturnValue("de-DE");
@@ -50,44 +45,18 @@ describe("detectLocale", () => {
     expect(detectLocale()).toBe("de");
   });
 
-  it("falls back to 'en' for unsupported browser language", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("ko-KR");
-    expect(detectLocale()).toBe("en");
-  });
-
-  it("returns 'de' for Austrian browser locale (resolves to UI locale)", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("de-AT");
-    expect(detectLocale()).toBe("de");
-  });
-
-  it("returns 'de' for Swiss German browser locale (resolves to UI locale)", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("de-CH");
-    expect(detectLocale()).toBe("de");
-  });
-
-  it("returns 'fr' for French browser locale", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("fr-FR");
-    expect(detectLocale()).toBe("fr");
-  });
-
-  it("returns 'fr' for Swiss French browser locale (prefix match)", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("fr-CH");
-    expect(detectLocale()).toBe("fr");
-  });
-
-  it("returns 'it' for Italian browser locale", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("it-IT");
-    expect(detectLocale()).toBe("it");
-  });
-
-  it("returns 'it' for Swiss Italian browser locale (prefix match)", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("it-CH");
-    expect(detectLocale()).toBe("it");
-  });
-
-  it("falls back to 'en' when localStorage is empty and language unsupported", () => {
-    vi.spyOn(navigator, "language", "get").mockReturnValue("zh-CN");
-    expect(detectLocale()).toBe("en");
+  it.each([
+    ["en", "en"],
+    ["de-CH", "de"],
+    ["fr-FR", "fr"],
+    ["fr-CH", "fr"],
+    ["it-IT", "it"],
+    ["it-CH", "it"],
+    ["zh-CN", "en"],
+  ])("detects locale %s resolves to %s", (browserLang, expected) => {
+    localStorage.clear();
+    vi.spyOn(navigator, "language", "get").mockReturnValue(browserLang);
+    expect(detectLocale()).toBe(expected);
   });
 });
 

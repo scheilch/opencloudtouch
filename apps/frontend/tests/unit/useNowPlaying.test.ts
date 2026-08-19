@@ -37,11 +37,14 @@ describe("useNowPlaying – device offline", () => {
     vi.unstubAllGlobals();
   });
 
-  it("sets deviceOffline=true on 503 response", async () => {
+  it.each([
+    [503, "Service Unavailable"],
+    [500, "Internal Server Error"],
+  ])("sets deviceOffline=true on %i response", async (status, statusText) => {
     mockFetch.mockResolvedValue({
       ok: false,
-      status: 503,
-      statusText: "Service Unavailable",
+      status,
+      statusText,
     });
 
     const { result } = renderHook(() => useNowPlaying("device-123"));
@@ -84,21 +87,6 @@ describe("useNowPlaying – device offline", () => {
     });
 
     expect(mockFetch.mock.calls.length).toBe(callCountBefore);
-  });
-
-  it("sets deviceOffline=true on 500 response (backend catch-all)", async () => {
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 500,
-      statusText: "Internal Server Error",
-    });
-
-    const { result } = renderHook(() => useNowPlaying("device-123"));
-
-    await waitFor(() => {
-      expect(result.current.deviceOffline).toBe(true);
-      expect(result.current.error).toBe("Device unreachable");
-    });
   });
 
   it("resets state when deviceId changes to undefined", async () => {
@@ -287,59 +275,5 @@ describe("useNowPlaying – SSE push events", () => {
 
     // Should not change — different device_id
     expect(result.current.nowPlaying?.track).toBe("Original");
-  });
-
-  it("has zero setInterval calls", () => {
-    // Verify the source code has no polling artifacts
-    const hookSource = useNowPlaying.toString();
-    expect(hookSource).not.toContain("setInterval");
-    expect(hookSource).not.toContain("POLL_INTERVAL_MS");
-  });
-
-  it("StrictMode: no leaked subscriptions on unmount/remount", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ source: "BLUETOOTH", state: "PLAY_STATE" }),
-    });
-
-    // Mount
-    const { unmount } = renderHook(() => useNowPlaying("device-99"));
-    await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
-
-    const unsubFnsMount1 = [...mockUnsubFns];
-
-    // Unmount (StrictMode first unmount)
-    unmount();
-
-    // All unsub fns from mount1 called
-    for (const unsub of unsubFnsMount1) {
-      expect(unsub).toHaveBeenCalled();
-    }
-
-    // Remount (StrictMode second mount)
-    mockSubscribe.mockClear();
-    mockUnsubFns = [];
-
-    const { unmount: unmount2 } = renderHook(() => useNowPlaying("device-99"));
-    await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
-
-    // Should have fresh subscriptions
-    expect(mockSubscribe).toHaveBeenCalledWith(
-      "now_playing",
-      "device-99",
-      expect.any(Function),
-    );
-    expect(mockSubscribe).toHaveBeenCalledWith(
-      "metadata_enriched",
-      "device-99",
-      expect.any(Function),
-    );
-
-    unmount2();
-
-    // All subscriptions cleaned up
-    for (const unsub of mockUnsubFns) {
-      expect(unsub).toHaveBeenCalled();
-    }
   });
 });

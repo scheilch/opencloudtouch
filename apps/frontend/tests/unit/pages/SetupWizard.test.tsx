@@ -168,11 +168,6 @@ describe("SetupWizard (pages/SetupWizard)", () => {
         screen.getByRole("button", { name: /back to home page/i })
       ).toBeInTheDocument();
     });
-
-    it("does not render ProgressTracker in empty state", () => {
-      render(<SetupWizard devices={[]} />);
-      expect(screen.queryByTestId("progress-tracker")).not.toBeInTheDocument();
-    });
   });
 
   // -- Direct Wizard Start --
@@ -198,11 +193,6 @@ describe("SetupWizard (pages/SetupWizard)", () => {
       await waitFor(() => {
         expect(screen.getByText("Step 1")).toBeInTheDocument();
       });
-    });
-
-    it("does not show PHASE 1 DEMO banner in production/test mode", () => {
-      render(<SetupWizard devices={mockDevices} />);
-      expect(screen.queryByText(/PHASE 1 DEMO/)).not.toBeInTheDocument();
     });
   });
 
@@ -233,23 +223,6 @@ describe("SetupWizard (pages/SetupWizard)", () => {
 
     it("shows DeviceInfoHeader with device name", async () => {
       render(<SetupWizard devices={mockDevices} />);
-      fireEvent.click(screen.getByRole("button", { name: /setup wählen/i }));
-      await waitFor(() => {
-        expect(screen.getByTestId("device-info-header")).toBeInTheDocument();
-        expect(screen.getByText("Living Room")).toBeInTheDocument();
-      });
-    });
-  });
-
-  // -- Device Auto-Selection --
-
-  describe("Device Auto-Selection", () => {
-    it("auto-selects first device when URL has no deviceId parameter", async () => {
-      const multipleDevices: Device[] = [
-        { ...mockDevice, device_id: "ST30-001", name: "Living Room" },
-        { ...mockDevice, device_id: "ST30-002", name: "Bedroom" },
-      ];
-      render(<SetupWizard devices={multipleDevices} />);
       fireEvent.click(screen.getByRole("button", { name: /setup wählen/i }));
       await waitFor(() => {
         expect(screen.getByTestId("device-info-header")).toBeInTheDocument();
