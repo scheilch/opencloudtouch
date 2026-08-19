@@ -170,4 +170,162 @@ describe("useDiscoveryStream - BUG-35: SSE URL must not be localhost", () => {
     expect(cached).not.toHaveProperty("devices");
     expect(cached).toEqual([device]);
   });
+
+  it("logs the started event without changing discovery state (function coverage)", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+
+    act(() => {
+      es.emit("started", JSON.stringify({ message: "Discovery started" }));
+    });
+
+    expect(result.current.isDiscovering).toBe(true);
+  });
+
+  it("increments discovered count on a valid device_found event", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+
+    act(() => {
+      es.emit("device_found", JSON.stringify({ ip: "10.0.0.99" }));
+    });
+
+    expect(result.current.stats.discovered).toBe(1);
+  });
+
+  it("ignores a malformed device_found payload instead of crashing (safeParse catch branch)", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+
+    expect(() => {
+      act(() => {
+        es.emit("device_found", "{not valid json");
+      });
+    }).not.toThrow();
+
+    // safeParse returned null, so the handler returned early: stats unchanged.
+    expect(result.current.stats.discovered).toBe(0);
+    expect(result.current.isDiscovering).toBe(true);
+  });
+
+  it("increments failed count on a device_failed event", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+
+    act(() => {
+      es.emit("device_failed", JSON.stringify({ ip: "10.0.0.5", reason: "timeout" }));
+    });
+
+    expect(result.current.stats.failed).toBe(1);
+  });
+
+  it("sets the error message from a well-formed error event and closes the connection", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+
+    act(() => {
+      es.emit("error", JSON.stringify({ message: "Backend discovery process crashed" }));
+    });
+
+    expect(result.current.isDiscovering).toBe(false);
+    expect(result.current.error).toBe("Backend discovery process crashed");
+    expect(es.close).toHaveBeenCalled();
+  });
+
+  it("falls back to a default error message when the error event payload isn't JSON", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+
+    act(() => {
+      es.emit("error", "not valid json");
+    });
+
+    expect(result.current.isDiscovering).toBe(false);
+    expect(result.current.error).toBe("Discovery failed");
+    expect(es.close).toHaveBeenCalled();
+  });
+
+  it("reports 'Discovery already in progress' when onerror fires with readyState CLOSED", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+    es.readyState = ControllableEventSource.CLOSED;
+
+    act(() => {
+      es.onerror!({ target: es } as unknown as Event);
+    });
+
+    expect(result.current.isDiscovering).toBe(false);
+    expect(result.current.error).toBe("Discovery already in progress");
+    expect(es.close).toHaveBeenCalled();
+  });
+
+  it("reports 'Connection lost' when onerror fires without readyState CLOSED", () => {
+    const { result } = renderHook(() => useDiscoveryStream(), {
+      wrapper: QueryWrapper,
+    });
+
+    act(() => {
+      result.current.startDiscovery();
+    });
+
+    const es = ControllableEventSource.instances[ControllableEventSource.instances.length - 1];
+    es.readyState = ControllableEventSource.CONNECTING;
+
+    act(() => {
+      es.onerror!({ target: es } as unknown as Event);
+    });
+
+    expect(result.current.isDiscovering).toBe(false);
+    expect(result.current.error).toBe("Connection lost");
+    expect(es.close).toHaveBeenCalled();
+  });
 });
