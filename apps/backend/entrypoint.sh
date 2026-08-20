@@ -22,6 +22,24 @@ log_error() {
     echo "${RED}[ERROR]${NC} $1"
 }
 
+# Check system page size compatibility
+check_page_size() {
+    PAGE_SIZE=$(getconf PAGE_SIZE 2>/dev/null || true)
+
+    if ! echo "$PAGE_SIZE" | grep -qE '^[0-9]+$'; then
+        log_warn "Unable to determine system page size; continuing without page-size compatibility check."
+        return 0
+    fi
+
+    if [ "$PAGE_SIZE" -gt 4096 ]; then
+        log_error "This platform uses ${PAGE_SIZE}-byte pages which is not supported by Python/Docker."
+        log_error "Supported platforms: Standard Linux (4KB pages), Raspberry Pi, x86/x64."
+        log_error "Unsupported: QNAP ARM NAS (32KB pages)."
+        log_error "See: https://www.qnap.com/en-uk/how-to/faq/article/why-do-the-installed-third-party-containers-not-run-successfully-on-specific-32-bit-arm-devices"
+        exit 1
+    fi
+}
+
 # Validate required environment variables
 validate_env() {
     log_info "Validating environment variables..."
@@ -113,6 +131,9 @@ fix_permissions() {
 
 # Main entrypoint logic
 main() {
+    # Check system page size compatibility
+    check_page_size
+    
     # Fix volume permissions before dropping privileges (runs as root)
     fix_permissions
 
