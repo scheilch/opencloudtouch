@@ -760,5 +760,9 @@
     "inputLabel": "デバイス名",
     "tooLong": "名前は30文字以内にする必要があります",
     "failed": "名前の変更に失敗しました"
+  },
+  "deviceHeader": {
+    "reboot": "Reboot device",
+    "sent": "Reboot command sent"
   }
 }

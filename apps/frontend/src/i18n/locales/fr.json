@@ -760,5 +760,9 @@
     "inputLabel": "Nom de l'appareil",
     "tooLong": "Le nom doit comporter 30 caractères maximum",
     "failed": "Échec du renommage"
+  },
+  "deviceHeader": {
+    "reboot": "Reboot device",
+    "sent": "Reboot command sent"
   }
 }

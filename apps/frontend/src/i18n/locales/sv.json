@@ -760,5 +760,9 @@
     "inputLabel": "Enhetsnamn",
     "tooLong": "Namnet får ha max 30 tecken",
     "failed": "Det gick inte att byta namn"
+  },
+  "deviceHeader": {
+    "reboot": "Reboot device",
+    "sent": "Reboot command sent"
   }
 }

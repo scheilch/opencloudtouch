@@ -760,5 +760,9 @@
     "inputLabel": "Nome dispositivo",
     "tooLong": "Il nome deve avere al massimo 30 caratteri",
     "failed": "Rinominazione non riuscita"
+  },
+  "deviceHeader": {
+    "reboot": "Reboot device",
+    "sent": "Reboot command sent"
   }
 }

@@ -657,7 +657,7 @@
     "hallOfFameDescription": "Los 3 mejores colaboradores de todos los tiempos — reconocidos por su impacto técnico excepcional.",
     "supportersTitle": "Patrocinadores",
     "reportBug": "Reportar error",
-    "diagnostics": "Diagn\u00f3sticos",
+    "diagnostics": "Diagnósticos",
     "supportersDescription": "Gracias a todos los que apoyan OpenCloudTouch financieramente. ¡Sus contribuciones ayudan a mantener el proyecto vivo!",
     "supportersMonthly": "Patrocinadores Mensuales",
     "supportersOneTime": "Patrocinadores Únicos",
@@ -760,5 +760,9 @@
     "inputLabel": "Nombre del dispositivo",
     "tooLong": "El nombre debe tener 30 caracteres o menos",
     "failed": "Error al renombrar el dispositivo"
+  },
+  "deviceHeader": {
+    "reboot": "Reboot device",
+    "sent": "Reboot command sent"
   }
 }
