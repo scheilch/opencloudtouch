@@ -657,7 +657,7 @@
     "hallOfFameDescription": "Los 3 mejores colaboradores de todos los tiempos — reconocidos por su impacto técnico excepcional.",
     "supportersTitle": "Patrocinadores",
     "reportBug": "Reportar error",
-    "diagnostics": "Diagnósticos",
+    "diagnostics": "Diagn\u00f3sticos",
     "supportersDescription": "Gracias a todos los que apoyan OpenCloudTouch financieramente. ¡Sus contribuciones ayudan a mantener el proyecto vivo!",
     "supportersMonthly": "Patrocinadores Mensuales",
     "supportersOneTime": "Patrocinadores Únicos",
@@ -762,8 +762,8 @@
     "failed": "Error al renombrar el dispositivo"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "Reiniciar dispositivo",
+    "sent": "Comando de reinicio enviado",
+    "confirmMessage": "¿Reiniciar {{name}}? El dispositivo no estará disponible durante unos 60 segundos."
   }
 }

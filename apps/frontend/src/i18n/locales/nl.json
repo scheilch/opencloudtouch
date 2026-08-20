@@ -762,8 +762,8 @@
     "failed": "Hernoemen mislukt"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "Apparaat herstarten",
+    "sent": "Herstartopdracht verzonden",
+    "confirmMessage": "{{name}} herstarten? Het apparaat is ongeveer 60 seconden niet beschikbaar."
   }
 }

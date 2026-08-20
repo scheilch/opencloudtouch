@@ -762,8 +762,8 @@
     "failed": "Det gick inte att byta namn"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "Starta om enheten",
+    "sent": "Omstartskommando skickat",
+    "confirmMessage": "Starta om {{name}}? Enheten kommer att vara otillgänglig i ungefär 60 sekunder."
   }
 }

@@ -762,8 +762,8 @@
     "failed": "名前の変更に失敗しました"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "デバイスを再起動",
+    "sent": "再起動コマンドを送信しました",
+    "confirmMessage": "{{name}}を再起動しますか？デバイスは約60秒間使用できなくなります。"
   }
 }

@@ -762,8 +762,8 @@
     "failed": "Rinominazione non riuscita"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "Riavvia il dispositivo",
+    "sent": "Comando di riavvio inviato",
+    "confirmMessage": "Riavviare {{name}}? Il dispositivo non sarà disponibile per circa 60 secondi."
   }
 }

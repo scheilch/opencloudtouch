@@ -762,8 +762,8 @@
     "failed": "Umbenennung fehlgeschlagen"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "Gerät neu starten",
+    "sent": "Neustart-Befehl gesendet",
+    "confirmMessage": "{{name}} neu starten? Das Gerät ist für ca. 60 Sekunden nicht erreichbar."
   }
 }

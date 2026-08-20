@@ -762,8 +762,8 @@
     "failed": "Nie udało się zmienić nazwy"
   },
   "deviceHeader": {
-    "reboot": "Reboot device",
-    "sent": "Reboot command sent",
-    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
+    "reboot": "Uruchom ponownie urządzenie",
+    "sent": "Polecenie restartu wysłane",
+    "confirmMessage": "Uruchomić ponownie {{name}}? Urządzenie będzie niedostępne przez około 60 sekund."
   }
 }
