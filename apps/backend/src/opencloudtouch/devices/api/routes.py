@@ -602,7 +602,7 @@ async def set_mute(
     return {"actual": vol.actual, "target": vol.target, "muted": vol.muted}
 
 
-@router.get("/{device_id}/reboot")
+@router.post("/{device_id}/reboot", responses={404: {"description": "Device not found"}, 503: {"description": "Device unreachable"}})
 async def reboot_device(
     device_id: str,
     device_service: DeviceService = Depends(get_device_service),

@@ -434,12 +434,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
   /api/devices/{device_id}/reboot:
-    get:
+    post:
       tags:
       - Devices
       summary: Reboot Device
       description: Reboot a device.
-      operationId: reboot_device_api_devices__device_id__reboot_get
+      operationId: reboot_device_api_devices__device_id__reboot_post
       parameters:
       - name: device_id
         in: path
@@ -452,7 +452,20 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  device_id:
+                    type: string
+                required:
+                - message
+                - device_id
+        '404':
+          description: Device not found
+        '503':
+          description: Device unreachable
         '422':
           description: Validation Error
           content:
