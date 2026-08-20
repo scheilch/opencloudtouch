@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Device, rebootDevice } from "../../api/devices";
+import ConfirmDialog from "../ConfirmDialog";
 import "./DeviceInfoHeader.css";
 
 interface DeviceInfoHeaderProps {
@@ -14,9 +15,10 @@ interface DeviceInfoHeaderProps {
 export default function DeviceInfoHeader({ device }: DeviceInfoHeaderProps) {
   const { t } = useTranslation();
   const [rebootState, setRebootState] = useState<"idle" | "sent" | "error">("idle");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleReboot = async () => {
-    if (rebootState === "sent") return;
+    setConfirmOpen(false);
     try {
       await rebootDevice(device.device_id);
       setRebootState("sent");
@@ -40,7 +42,7 @@ export default function DeviceInfoHeader({ device }: DeviceInfoHeaderProps) {
       </div>
       <button
         className={`device-reboot-btn device-reboot-btn--${rebootState}`}
-        onClick={handleReboot}
+        onClick={() => setConfirmOpen(true)}
         disabled={rebootState === "sent"}
         title={t("deviceHeader.reboot")}
       >
@@ -48,6 +50,14 @@ export default function DeviceInfoHeader({ device }: DeviceInfoHeaderProps) {
         {rebootState === "sent" && t("deviceHeader.sent")}
         {rebootState === "error" && "✕"}
       </button>
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t("deviceHeader.reboot")}
+        message={t("deviceHeader.confirmMessage", { name: device.name || device.device_id })}
+        confirmLabel={t("deviceHeader.reboot")}
+        onConfirm={handleReboot}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }

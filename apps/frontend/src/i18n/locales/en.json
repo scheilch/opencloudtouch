@@ -763,6 +763,7 @@
   },
   "deviceHeader": {
     "reboot": "Reboot device",
-    "sent": "Reboot command sent"
+    "sent": "Reboot command sent",
+    "confirmMessage": "Reboot {{name}}? The device will be unavailable for about 60 seconds."
   }
 }
