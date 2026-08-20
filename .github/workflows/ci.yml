@@ -566,6 +566,7 @@ jobs:
     if: always()
     permissions:
       pull-requests: write
+      issues: write
 
     steps:
       - name: Download backend coverage
