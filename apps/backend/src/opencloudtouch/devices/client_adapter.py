@@ -563,7 +563,9 @@ class BoseDeviceClientAdapter(DeviceClient):
     async def reboot(self) -> None:
         """Reboot the device via TCP telnet interface (port 17000)."""
         try:
-            reader, writer = await asyncio.wait_for(asyncio.open_connection(self.ip, 17000), timeout=5.0)
+            reader, writer = await asyncio.wait_for(
+                asyncio.open_connection(self.ip, 17000), timeout=5.0
+            )
             try:
                 writer.write(b"sys reboot\n")
                 await writer.drain()
