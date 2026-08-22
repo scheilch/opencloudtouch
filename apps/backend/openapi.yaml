@@ -116,8 +116,8 @@ paths:
       tags:
       - Devices
       summary: Get Devices
-      description: "Get all devices from database.\n\nReturns:\n    List of devices\
-        \ with details"
+      description: "Get all devices from database, sorted alphabetically by name (case-insensitive).\n\nReturns:\n    List of devices\
+          \ with details"
       operationId: get_devices_api_devices_get
       responses:
         '200':
