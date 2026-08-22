@@ -165,6 +165,7 @@ async def test_device_get_all(repo):
     assert len(devices) == 2
     assert all(isinstance(d, Device) for d in devices)
 
+
 @pytest.mark.asyncio
 async def test_device_get_all_sorted_by_name_case_insensitive(repo):
     """Test case-insensitive Unicode sorting by device name."""
@@ -214,6 +215,7 @@ async def test_device_get_all_sorted_by_name_case_insensitive(repo):
         "Bravo",
         "Zulu",
     ]
+
 
 @pytest.mark.asyncio
 async def test_device_get_by_device_id(repo):
