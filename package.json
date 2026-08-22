@@ -1,6 +1,6 @@
 {
   "name": "opencloudtouch",
-  "version": "1.5.6",
+  "version": "1.5.7",
   "private": true,
   "description": "OpenCloudTouch - Local control for compatible streaming devices after cloud shutdown",
   "type": "module",
