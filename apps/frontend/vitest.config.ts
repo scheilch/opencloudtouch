@@ -37,9 +37,12 @@ export default defineConfig({
         'eslint.config.ts',
       ],
       thresholds: {
-        // Single global threshold (average of all metrics)
-        // Current: Stmts 82.54%, Branch 74.55%, Funcs 77.31%, Lines 83.76%
-        global: 80,
+        // Per-metric thresholds (the v8 provider does not support a "global" key —
+        // it silently ignored the prior single-key config, so this gate was inert).
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
       },
     },
   },
