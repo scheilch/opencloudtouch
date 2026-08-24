@@ -208,4 +208,115 @@ describe("Diagnostics Page", () => {
       );
     });
   });
+
+  describe("Additional branch coverage", () => {
+    it("shows red status for a device last seen 30+ minutes ago (not null)", async () => {
+      mockedGetDiagnostics.mockResolvedValue({
+        ...MOCK_RESPONSE,
+        devices: [
+          {
+            ...MOCK_RESPONSE.devices[0],
+            last_seen: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
+          },
+        ],
+      });
+      render(<Diagnostics />);
+      await waitFor(() => {
+        expect(screen.getByText("Living Room")).toBeInTheDocument();
+      });
+      const redDots = screen.getAllByLabelText("red");
+      expect(redDots.length).toBeGreaterThan(0);
+      expect(redDots[0]).toHaveClass("status-dot", "status-red");
+    });
+
+    it("skips state updates when unmounted before the fetch resolves", async () => {
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      let resolvePromise: (value: DiagnosticsResponse) => void;
+      mockedGetDiagnostics.mockReturnValue(
+        new Promise((resolve) => {
+          resolvePromise = resolve;
+        })
+      );
+
+      const { unmount } = render(<Diagnostics />);
+      unmount();
+      resolvePromise!(MOCK_RESPONSE);
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(consoleError).not.toHaveBeenCalled();
+      consoleError.mockRestore();
+    });
+
+    it("skips error state updates when unmounted before the fetch rejects", async () => {
+      const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+      let rejectPromise: (err: Error) => void;
+      mockedGetDiagnostics.mockReturnValue(
+        new Promise((_resolve, reject) => {
+          rejectPromise = reject;
+        })
+      );
+
+      const { unmount } = render(<Diagnostics />);
+      unmount();
+      rejectPromise!(new Error("too late"));
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(consoleError).not.toHaveBeenCalled();
+      consoleError.mockRestore();
+    });
+
+    it("shows the raw stringified value when the fetch rejects with a non-Error", async () => {
+      mockedGetDiagnostics.mockRejectedValue("boom-string");
+      render(<Diagnostics />);
+      await waitFor(() => {
+        expect(screen.getByText("boom-string")).toBeInTheDocument();
+      });
+    });
+
+    it("shows the generic unknown-error toast when download rejects with a non-Error", async () => {
+      mockedGetDiagnostics.mockResolvedValue(MOCK_RESPONSE);
+      mockedDownloadDiagnostics.mockRejectedValue("network-blip");
+      const user = userEvent.setup();
+
+      render(<Diagnostics />);
+      await waitFor(() => {
+        expect(screen.getByText("Download Support Bundle")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("Download Support Bundle"));
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          "Failed to download diagnostics: An unexpected error occurred. Please try again.",
+          "error",
+          8000
+        );
+      });
+    });
+
+    it("shows yellow/disabled discovery status when discovery is disabled", async () => {
+      mockedGetDiagnostics.mockResolvedValue({
+        ...MOCK_RESPONSE,
+        server: { ...MOCK_RESPONSE.server, discovery_enabled: false },
+      });
+      render(<Diagnostics />);
+      await waitFor(() => {
+        expect(screen.getByText("Disabled")).toBeInTheDocument();
+      });
+      const discoveryDot = screen.getByLabelText("yellow");
+      expect(discoveryDot).toHaveClass("status-dot", "status-yellow");
+    });
+
+    it("shows the cross icon when ssh_permanent is false", async () => {
+      mockedGetDiagnostics.mockResolvedValue({
+        ...MOCK_RESPONSE,
+        devices: [{ ...MOCK_RESPONSE.devices[0], ssh_permanent: false }],
+      });
+      render(<Diagnostics />);
+      await waitFor(() => {
+        expect(screen.getByText("Living Room")).toBeInTheDocument();
+      });
+      expect(screen.getByText("❌")).toBeInTheDocument();
+    });
+  });
 });
