@@ -160,7 +160,7 @@ describe("EmptyState Component", () => {
 
       // BUG-15: navigate should only be called once, not in a loop
       const navigateCalls = (mockNavigate as Mock).mock.calls.length;
-      expect(navigateCalls).toBeLessThanOrEqual(3);
+      expect(navigateCalls).toBe(1);
     });
 
     it("should show discovering state when isDiscovering is true", async () => {

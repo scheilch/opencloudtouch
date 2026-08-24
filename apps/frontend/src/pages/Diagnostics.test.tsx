@@ -229,7 +229,12 @@ describe("Diagnostics Page", () => {
       expect(redDots[0]).toHaveClass("status-dot", "status-red");
     });
 
-    it("skips state updates when unmounted before the fetch resolves", async () => {
+    it("executes the cancelled-guard arm when unmounted before the fetch resolves (coverage-only, see comment)", async () => {
+      // NOTE: this closes the branch for coverage purposes only. React 18+ removed the
+      // "update on unmounted component" console warning, so an unmounted setState call is
+      // a silent no-op whether or not the `cancelled` guard exists - this assertion would
+      // still pass even if the guard were deleted. No black-box console/DOM assertion can
+      // discriminate the guard's actual behavior under this React version.
       const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
       let resolvePromise: (value: DiagnosticsResponse) => void;
       mockedGetDiagnostics.mockReturnValue(
@@ -247,7 +252,12 @@ describe("Diagnostics Page", () => {
       consoleError.mockRestore();
     });
 
-    it("skips error state updates when unmounted before the fetch rejects", async () => {
+    it("executes the cancelled-guard arm when unmounted before the fetch rejects (coverage-only, see comment)", async () => {
+      // NOTE: this closes the branch for coverage purposes only. React 18+ removed the
+      // "update on unmounted component" console warning, so an unmounted setState call is
+      // a silent no-op whether or not the `cancelled` guard exists - this assertion would
+      // still pass even if the guard were deleted. No black-box console/DOM assertion can
+      // discriminate the guard's actual behavior under this React version.
       const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
       let rejectPromise: (err: Error) => void;
       mockedGetDiagnostics.mockReturnValue(
