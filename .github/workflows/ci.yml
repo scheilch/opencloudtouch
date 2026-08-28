@@ -130,7 +130,6 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -196,16 +195,15 @@ jobs:
           echo ""
           echo "✅ All commits follow Conventional Commits format!"
 
-      - name: PR comment on failure
+      - name: Save PR comment payload on failure
         if: failure()
         uses: actions/github-script@v9
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `## ❌ Commit Message Validation Failed
+            const fs = require('fs');
+            const marker = '<!-- commit-lint-check -->';
+            const body = `${marker}
+            ## ❌ Commit Message Validation Failed
 
             Your PR contains commits that don't follow the [Conventional Commits](https://www.conventionalcommits.org/) format.
 
@@ -223,8 +221,21 @@ jobs:
             \`feat\`, \`fix\`, \`docs\`, \`style\`, \`refactor\`, \`perf\`, \`test\`, \`build\`, \`ci\`, \`chore\`, \`revert\`
 
             📖 See [Conventional Commits](https://www.conventionalcommits.org/) for details.
-            `,
-            });
+            `;
+            fs.mkdirSync('.pr-comment', { recursive: true });
+            fs.writeFileSync('.pr-comment/commit-lint.json', JSON.stringify({
+              pr_number: context.issue.number,
+              marker,
+              body,
+            }));
+
+      - name: Upload PR comment payload
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-comment-commit-lint
+          path: .pr-comment/commit-lint.json
+          retention-days: 1
 
   # ============================================================================
   # SECURITY SCANNING
