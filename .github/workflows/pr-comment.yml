@@ -1,0 +1,99 @@
+# ==============================================================================
+# PR COMMENT RELAY
+#
+# Posts/updates the sticky PR comments (CI summary, commit-lint failure) that
+# ci.yml's jobs stage as JSON artifacts instead of posting directly.
+#
+# Runs via `workflow_run`, which always executes using this file and the
+# default GITHUB_TOKEN permissions of the base repository (main) — never the
+# fork's copy of the workflow, and never with the read-only token GitHub
+# forces on `pull_request`-triggered runs from forks. This workflow never
+# checks out or runs any code from the PR; it only reads the small JSON
+# payloads that ci.yml's own trusted jobs already staged as artifacts.
+# ==============================================================================
+
+name: PR Comment Relay
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  post-comments:
+    name: Post staged PR comments
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion != 'cancelled'
+    permissions:
+      actions: read
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Download staged comment payloads
+        uses: actions/download-artifact@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+          pattern: pr-comment-*
+          merge-multiple: true
+          path: ./pr-comment-payloads
+          if-no-artifact-found: ignore
+
+      - name: Post or update sticky comments
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const fs = require('fs');
+            const dir = './pr-comment-payloads';
+
+            if (!fs.existsSync(dir)) {
+              console.log('No staged PR comment payloads found — nothing to do.');
+              return;
+            }
+
+            const files = fs.readdirSync(dir).filter(f => f.endsWith('.json'));
+            if (files.length === 0) {
+              console.log('No staged PR comment payloads found — nothing to do.');
+              return;
+            }
+
+            for (const file of files) {
+              const payload = JSON.parse(fs.readFileSync(`${dir}/${file}`, 'utf8'));
+              const { pr_number: issueNumber, marker, body } = payload;
+
+              if (!issueNumber || !marker || !body) {
+                console.log(`Skipping ${file}: missing pr_number, marker, or body.`);
+                continue;
+              }
+
+              const { data: comments } = await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+              });
+              const existing = comments.find(c => c.body.includes(marker));
+
+              if (existing) {
+                await github.rest.issues.updateComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: existing.id,
+                  body,
+                });
+                console.log(`Updated comment ${existing.id} on PR #${issueNumber} (${marker}).`);
+              } else {
+                const { data: created } = await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body,
+                });
+                console.log(`Created comment ${created.id} on PR #${issueNumber} (${marker}).`);
+              }
+            }
