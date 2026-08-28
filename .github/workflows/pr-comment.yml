@@ -10,6 +10,19 @@
 # forces on `pull_request`-triggered runs from forks. This workflow never
 # checks out or runs any code from the PR; it only reads the small JSON
 # payloads that ci.yml's own trusted jobs already staged as artifacts.
+#
+# IMPORTANT: for a `pull_request` run from a fork, GitHub executes the FORK'S
+# OWN COPY of ci.yml — so the `pr_number` inside a staged JSON payload is
+# attacker-influenced, not trustworthy. This workflow never uses it to decide
+# which PR to comment on: the target PR is always resolved independently from
+# the trusted `workflow_run` event (via `pull_requests`, or a commit-SHA
+# lookup when that's empty, as it is for fork PRs). Without this, a fork PR
+# could redirect this workflow's real write access at an arbitrary PR.
+#
+# Trade-off: this relay applies uniformly to same-repo and fork PRs alike
+# (there's no safe way to keep the old direct-post path for one and not the
+# other), so every PR now waits for a second workflow run before the sticky
+# comment appears/updates, not just fork PRs. This is expected, not a bug.
 # ==============================================================================
 
 name: PR Comment Relay
@@ -30,7 +43,7 @@ jobs:
       github.event.workflow_run.conclusion != 'cancelled'
     permissions:
       actions: read
-      pull-requests: write
+      pull-requests: read
       issues: write
 
     steps:
@@ -50,6 +63,32 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+
+            // Resolve which PR this run belongs to from the trusted
+            // workflow_run event — never from the artifact payload. For a
+            // fork PR, ci.yml ran with the fork's own copy of the workflow
+            // file, so anything the payload claims (including pr_number) is
+            // attacker-influenced.
+            const runPRs = context.payload.workflow_run.pull_requests || [];
+            let issueNumber;
+            if (runPRs.length > 0) {
+              issueNumber = runPRs[0].number;
+            } else {
+              // Empty for fork-originated runs — resolve via the commit SHA.
+              const headSha = context.payload.workflow_run.head_sha;
+              const { data: pulls } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: headSha,
+              });
+              const openPulls = pulls.filter(p => p.state === 'open');
+              if (openPulls.length === 0) {
+                console.log(`No open PR found for commit ${headSha} — nothing to comment on.`);
+                return;
+              }
+              issueNumber = openPulls[0].number;
+            }
+
             const dir = './pr-comment-payloads';
 
             if (!fs.existsSync(dir)) {
@@ -65,10 +104,14 @@ jobs:
 
             for (const file of files) {
               const payload = JSON.parse(fs.readFileSync(`${dir}/${file}`, 'utf8'));
-              const { pr_number: issueNumber, marker, body } = payload;
+              const { marker, body } = payload;
 
-              if (!issueNumber || !marker || !body) {
-                console.log(`Skipping ${file}: missing pr_number, marker, or body.`);
+              if (payload.pr_number && payload.pr_number !== issueNumber) {
+                console.log(`WARNING: ${file} claimed pr_number ${payload.pr_number} but this run belongs to PR #${issueNumber} — ignoring the claimed value.`);
+              }
+
+              if (!marker || !body) {
+                console.log(`Skipping ${file}: missing marker or body.`);
                 continue;
               }
 
