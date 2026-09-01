@@ -143,3 +143,132 @@ async def test_browse_dlna_server_error(monkeypatch):
 
     assert exc_info.value.status_code == 502
     assert exc_info.value.detail == "DLNA server unavailable"
+
+
+@pytest.mark.asyncio
+async def test_play_dlna_item(monkeypatch):
+    item = DlnaItem(
+        id="track-1",
+        parent_id="folder-1",
+        title="Track",
+        is_container=False,
+        resource_url="http://server/track.mp3",
+        media_class="object.item.audioItem.musicTrack",
+    )
+
+    service = AsyncMock()
+    service.play.return_value = item
+
+    monkeypatch.setattr(routes, "_service", service)
+
+    class Device:
+        ip = "192.168.1.10"
+
+    class DeviceService:
+        async def get_device_by_id(self, device_id):
+            return Device()
+
+    class App:
+        class State:
+            device_service = DeviceService()
+
+        state = State()
+
+    class Request:
+        app = App()
+
+    result = await routes.play_dlna_item(
+        request=Request(),
+        server_id="server-1",
+        object_id="track-1",
+        device_id="device-1",
+        parent_id="folder-1",
+    )
+
+    assert result["device_id"] == "device-1"
+    assert result["item"]["id"] == "track-1"
+    assert result["item"]["title"] == "Track"
+
+    service.play.assert_awaited_once_with(
+        device_id="device-1",
+        device_ip="192.168.1.10",
+        server_id="server-1",
+        parent_id="folder-1",
+        object_id="track-1",
+    )
+
+
+@pytest.mark.asyncio
+async def test_dlna_playback_controls(monkeypatch):
+    item = DlnaItem(
+        id="track-1",
+        parent_id="folder-1",
+        title="Track",
+        is_container=False,
+        resource_url="http://server/track.mp3",
+        media_class="object.item.audioItem.musicTrack",
+    )
+
+    service = AsyncMock()
+    service.next.return_value = item
+    service.previous.return_value = item
+
+    monkeypatch.setattr(routes, "_service", service)
+
+    class Device:
+        ip = "192.168.1.10"
+
+    class DeviceService:
+        async def get_device_by_id(self, device_id):
+            return Device()
+
+    class App:
+        class State:
+            device_service = DeviceService()
+
+        state = State()
+
+    class Request:
+        app = App()
+
+    request = Request()
+
+    await routes.pause_dlna(request=request, device_id="device-1")
+    await routes.resume_dlna(request=request, device_id="device-1")
+    await routes.next_dlna(request=request, device_id="device-1")
+    await routes.previous_dlna(request=request, device_id="device-1")
+
+    service.pause.assert_awaited_once_with("device-1", "192.168.1.10")
+    service.resume.assert_awaited_once_with("device-1", "192.168.1.10")
+    service.next.assert_awaited_once_with("device-1", "192.168.1.10")
+    service.previous.assert_awaited_once_with("device-1", "192.168.1.10")
+
+
+@pytest.mark.asyncio
+async def test_play_dlna_missing_device(monkeypatch):
+    service = AsyncMock()
+    monkeypatch.setattr(routes, "_service", service)
+
+    class DeviceService:
+        async def get_device_by_id(self, device_id):
+            return None
+
+    class App:
+        class State:
+            device_service = DeviceService()
+
+        state = State()
+
+    class Request:
+        app = App()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await routes.play_dlna_item(
+            request=Request(),
+            server_id="server-1",
+            object_id="track-1",
+            device_id="missing",
+            parent_id="folder-1",
+        )
+
+    assert exc_info.value.status_code == 404
