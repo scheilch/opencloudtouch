@@ -1,6 +1,6 @@
 """Tests for DLNA API routes."""
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import HTTPException
@@ -328,3 +328,42 @@ async def test_avtransport_notify_ignores_malformed_xml(monkeypatch):
 
     assert response.status_code == 200
     service.playback.handle_transport_state.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_get_current_dlna_item(monkeypatch):
+    item = DlnaItem(
+        id="track-1",
+        parent_id="0",
+        title="Current Track",
+        is_container=False,
+        resource_url="http://server/track.mp3",
+        media_class="object.item.audioItem.musicTrack",
+        artist="Artist",
+        album="Album",
+    )
+
+    service = AsyncMock()
+    service.playback.current = MagicMock(return_value=item)
+    monkeypatch.setattr(routes, "_service", service)
+
+    result = await routes.get_current_dlna_item("device-1")
+
+    assert result["device_id"] == "device-1"
+    assert result["item"]["title"] == "Current Track"
+    assert result["item"]["artist"] == "Artist"
+    assert result["item"]["album"] == "Album"
+
+
+@pytest.mark.asyncio
+async def test_get_current_dlna_item_when_idle(monkeypatch):
+    service = AsyncMock()
+    service.playback.current = MagicMock(return_value=None)
+    monkeypatch.setattr(routes, "_service", service)
+
+    result = await routes.get_current_dlna_item("device-1")
+
+    assert result == {
+        "device_id": "device-1",
+        "item": None,
+    }

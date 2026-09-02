@@ -147,6 +147,19 @@ async def dlna_avtransport_event(
     return Response(status_code=200)
 
 
+@router.get("/devices/{device_id}/current")
+async def get_current_dlna_item(
+    device_id: str,
+) -> dict:
+    """Return the currently active DLNA queue item."""
+    item = _service.playback.current(device_id)
+
+    return {
+        "device_id": device_id,
+        "item": asdict(item) if item else None,
+    }
+
+
 @router.post("/devices/{device_id}/pause")
 async def pause_dlna(
     request: Request,

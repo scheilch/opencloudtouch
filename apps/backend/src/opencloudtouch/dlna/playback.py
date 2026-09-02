@@ -19,6 +19,7 @@ class DlnaPlaybackState:
     index: int
     device_ip: str
     playing_seen: bool = False
+    is_active: bool = False
 
     @property
     def current_item(self) -> DlnaItem:
@@ -72,6 +73,7 @@ class DlnaPlaybackService:
             device_ip=device_ip,
         )
 
+        state.is_active = True
         self._states[device_id] = state
 
         await self._play_item(device_ip, state.current_item)
@@ -111,6 +113,14 @@ class DlnaPlaybackService:
         await self._play_item(device_ip, state.current_item)
         return state.current_item
 
+    def current(self, device_id: str) -> DlnaItem | None:
+        """Return the currently active DLNA item for a device."""
+        state = self._states.get(device_id)
+        if state is None or not state.is_active:
+            return None
+
+        return state.current_item
+
     async def handle_transport_state(
         self,
         device_id: str,
@@ -123,6 +133,7 @@ class DlnaPlaybackService:
 
         if transport_state == "PLAYING":
             state.playing_seen = True
+            state.is_active = True
             return None
 
         if transport_state != "STOPPED" or not state.playing_seen:
@@ -131,6 +142,7 @@ class DlnaPlaybackService:
         # Disarm before changing URI. SetAVTransportURI itself produces
         # STOPPED/TRANSITIONING events which must not advance again.
         state.playing_seen = False
+        state.is_active = False
 
         if state.index >= len(state.items) - 1:
             return None

@@ -262,3 +262,40 @@ async def test_stopped_at_queue_end_does_not_fail():
 
     assert result is None
     renderer.play_uri.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_current_returns_active_item():
+    renderer = AsyncMock()
+    service = DlnaPlaybackService(renderer=renderer)
+    track = make_track("track-1", "http://server/1.mp3")
+
+    await service.play(
+        "device-1",
+        "192.0.2.10",
+        "server-1",
+        [track],
+        "track-1",
+    )
+
+    assert service.current("device-1") == track
+
+
+@pytest.mark.asyncio
+async def test_current_is_empty_after_final_track_stops():
+    renderer = AsyncMock()
+    service = DlnaPlaybackService(renderer=renderer)
+    track = make_track("track-1", "http://server/1.mp3")
+
+    await service.play(
+        "device-1",
+        "192.0.2.10",
+        "server-1",
+        [track],
+        "track-1",
+    )
+
+    await service.handle_transport_state("device-1", "PLAYING")
+    await service.handle_transport_state("device-1", "STOPPED")
+
+    assert service.current("device-1") is None
