@@ -1,10 +1,14 @@
 """DLNA API routes."""
 
-from dataclasses import asdict
+import socket
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from dataclasses import asdict
+from xml.etree.ElementTree import ParseError
+
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 
 from opencloudtouch.dlna.client import DlnaBrowseError
+from opencloudtouch.dlna.events import parse_avtransport_event
 from opencloudtouch.dlna.playback import DlnaPlaybackError
 from opencloudtouch.dlna.renderer import DlnaRendererError
 from opencloudtouch.dlna.service import DlnaService
@@ -26,6 +30,26 @@ async def _get_device_ip(request: Request, device_id: str) -> str:
         )
 
     return device.ip
+
+
+def _get_callback_base_url(request: Request, device_ip: str) -> str:
+    """Build a callback URL reachable by the renderer."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.connect((device_ip, 8091))
+        callback_host = sock.getsockname()[0]
+
+    server = request.scope.get("server")
+    callback_port = server[1] if server else request.url.port
+
+    if callback_port is None:
+        callback_port = 80
+
+    return f"http://{callback_host}:{callback_port}"
+
+
+async def close_dlna_service() -> None:
+    """Close active DLNA AVTransport subscriptions."""
+    await _service.subscriptions.close()
 
 
 @router.get("/servers")
@@ -79,6 +103,7 @@ async def play_dlna_item(
             server_id=server_id,
             parent_id=parent_id,
             object_id=object_id,
+            callback_base_url=_get_callback_base_url(request, device_ip),
         )
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -91,6 +116,35 @@ async def play_dlna_item(
         "device_id": device_id,
         "item": asdict(item),
     }
+
+
+@router.api_route(
+    "/events/{device_id}",
+    methods=["NOTIFY"],
+    status_code=200,
+    include_in_schema=False,
+)
+async def dlna_avtransport_event(
+    request: Request,
+    device_id: str,
+) -> Response:
+    """Receive AVTransport events from a SoundTouch renderer."""
+    body = (await request.body()).decode("utf-8", errors="replace")
+
+    try:
+        event = parse_avtransport_event(body)
+    except ParseError:
+        # UPnP event callbacks must remain tolerant of malformed
+        # notifications from the renderer.
+        return Response(status_code=200)
+
+    if event.transport_state:
+        await _service.playback.handle_transport_state(
+            device_id,
+            event.transport_state,
+        )
+
+    return Response(status_code=200)
 
 
 @router.post("/devices/{device_id}/pause")

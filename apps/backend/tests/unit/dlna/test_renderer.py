@@ -2,6 +2,7 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from opencloudtouch.dlna.renderer import DlnaRenderer
@@ -82,3 +83,89 @@ async def test_renderer_error():
 
 def test_escape_xml():
     assert DlnaRenderer._escape_xml("a&b<c>") == "a&amp;b&lt;c&gt;"
+
+
+@pytest.mark.asyncio
+async def test_subscribe(respx_mock):
+    route = respx_mock.request(
+        method="SUBSCRIBE",
+        url="http://192.0.2.10:8091/AVTransport/Event",
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            headers={
+                "SID": "uuid:test-subscription",
+                "TIMEOUT": "Second-300",
+            },
+        )
+    )
+
+    renderer = DlnaRenderer()
+
+    sid, timeout = await renderer.subscribe(
+        "192.0.2.10",
+        "http://192.0.2.20:7777/api/dlna/events/device-1",
+    )
+
+    assert route.called
+    request = route.calls.last.request
+
+    assert request.headers["CALLBACK"] == (
+        "<http://192.0.2.20:7777/api/dlna/events/device-1>"
+    )
+    assert request.headers["NT"] == "upnp:event"
+    assert request.headers["TIMEOUT"] == "Second-300"
+    assert sid == "uuid:test-subscription"
+    assert timeout == 300
+
+
+@pytest.mark.asyncio
+async def test_renew_subscription(respx_mock):
+    route = respx_mock.request(
+        method="SUBSCRIBE",
+        url="http://192.0.2.10:8091/AVTransport/Event",
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            headers={
+                "SID": "uuid:test-subscription",
+                "TIMEOUT": "Second-300",
+            },
+        )
+    )
+
+    renderer = DlnaRenderer()
+
+    sid, timeout = await renderer.renew_subscription(
+        "192.0.2.10",
+        "uuid:test-subscription",
+        300,
+    )
+
+    assert route.called
+    request = route.calls.last.request
+
+    assert request.headers["SID"] == "uuid:test-subscription"
+    assert request.headers["TIMEOUT"] == "Second-300"
+    assert "CALLBACK" not in request.headers
+    assert "NT" not in request.headers
+    assert sid == "uuid:test-subscription"
+    assert timeout == 300
+
+
+@pytest.mark.asyncio
+async def test_unsubscribe(respx_mock):
+    route = respx_mock.request(
+        method="UNSUBSCRIBE",
+        url="http://192.0.2.10:8091/AVTransport/Event",
+    ).mock(return_value=httpx.Response(200))
+
+    renderer = DlnaRenderer()
+
+    await renderer.unsubscribe(
+        "192.0.2.10",
+        "uuid:test-subscription",
+    )
+
+    assert route.called
+    assert route.calls.last.request.headers["SID"] == "uuid:test-subscription"

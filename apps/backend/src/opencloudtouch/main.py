@@ -31,7 +31,7 @@ from opencloudtouch.core.static_files import (
 )
 from opencloudtouch.db import DeviceRepository
 from opencloudtouch.devices.adapter import get_discovery_adapter
-from opencloudtouch.dlna.routes import router as dlna_router
+from opencloudtouch.dlna.routes import router as dlna_router, close_dlna_service
 from opencloudtouch.devices.api.discovery_routes import discovery_router
 from opencloudtouch.devices.api.event_routes import event_router
 from opencloudtouch.devices.api.preset_stream_routes import (
@@ -333,6 +333,10 @@ async def _init_websocket_pipeline(
 
 async def _shutdown(app: FastAPI, repos: dict, logger: logging.Logger) -> None:
     """Graceful shutdown: stop background tasks, close repositories."""
+    # Close active DLNA AVTransport event subscriptions.
+    await close_dlna_service()
+    logger.info("DLNA AVTransport subscriptions closed")
+
     # Stop WebSocket manager first (stops pushing events)
     if hasattr(app.state, "ws_manager"):
         await app.state.ws_manager.stop()

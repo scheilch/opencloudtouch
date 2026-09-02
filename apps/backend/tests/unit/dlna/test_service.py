@@ -91,6 +91,7 @@ async def test_play_dlna_item():
 
     service.discovery.discover = AsyncMock(return_value=[server])
     service.client.browse = AsyncMock(return_value=[item])
+    service.subscriptions.ensure = AsyncMock()
     service.playback.play = AsyncMock(return_value=item)
 
     result = await service.play(
@@ -99,10 +100,23 @@ async def test_play_dlna_item():
         server_id="server-1",
         parent_id="folder-1",
         object_id="track-1",
+        callback_base_url="http://oct.local:7777",
     )
 
     assert result == item
-    service.playback.play.assert_awaited_once()
+
+    service.subscriptions.ensure.assert_awaited_once_with(
+        device_id="device-1",
+        device_ip="192.168.1.10",
+        callback_url="http://oct.local:7777/api/dlna/events/device-1",
+    )
+    service.playback.play.assert_awaited_once_with(
+        device_id="device-1",
+        device_ip="192.168.1.10",
+        server_id="server-1",
+        items=[item],
+        object_id="track-1",
+    )
 
 
 @pytest.mark.asyncio

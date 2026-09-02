@@ -159,3 +159,106 @@ async def test_unknown_playback_state():
 
     with pytest.raises(DlnaPlaybackError, match="No active"):
         await service.next("missing-device", "192.0.2.10")
+
+
+@pytest.mark.asyncio
+async def test_stopped_without_playing_does_not_advance():
+    renderer = AsyncMock()
+    service = DlnaPlaybackService(renderer=renderer)
+
+    first = make_track("track-1", "http://server/1.mp3")
+    second = make_track("track-2", "http://server/2.mp3")
+
+    await service.play(
+        "device-1",
+        "192.0.2.10",
+        "server-1",
+        [first, second],
+        "track-1",
+    )
+    renderer.reset_mock()
+
+    result = await service.handle_transport_state("device-1", "STOPPED")
+
+    assert result is None
+    renderer.play_uri.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_playing_then_stopped_advances_queue():
+    renderer = AsyncMock()
+    service = DlnaPlaybackService(renderer=renderer)
+
+    first = make_track("track-1", "http://server/1.mp3")
+    second = make_track("track-2", "http://server/2.mp3")
+
+    await service.play(
+        "device-1",
+        "192.0.2.10",
+        "server-1",
+        [first, second],
+        "track-1",
+    )
+    renderer.reset_mock()
+
+    await service.handle_transport_state("device-1", "PLAYING")
+    result = await service.handle_transport_state("device-1", "STOPPED")
+
+    assert result == second
+    renderer.play_uri.assert_awaited_once_with(
+        "192.0.2.10",
+        "http://server/2.mp3",
+    )
+
+
+@pytest.mark.asyncio
+async def test_extra_stopped_after_advance_does_not_advance_again():
+    renderer = AsyncMock()
+    service = DlnaPlaybackService(renderer=renderer)
+
+    first = make_track("track-1", "http://server/1.mp3")
+    second = make_track("track-2", "http://server/2.mp3")
+    third = make_track("track-3", "http://server/3.mp3")
+
+    await service.play(
+        "device-1",
+        "192.0.2.10",
+        "server-1",
+        [first, second, third],
+        "track-1",
+    )
+    renderer.reset_mock()
+
+    await service.handle_transport_state("device-1", "PLAYING")
+    first_result = await service.handle_transport_state("device-1", "STOPPED")
+    second_result = await service.handle_transport_state("device-1", "STOPPED")
+
+    assert first_result == second
+    assert second_result is None
+    renderer.play_uri.assert_awaited_once_with(
+        "192.0.2.10",
+        "http://server/2.mp3",
+    )
+
+
+@pytest.mark.asyncio
+async def test_stopped_at_queue_end_does_not_fail():
+    renderer = AsyncMock()
+    service = DlnaPlaybackService(renderer=renderer)
+
+    track = make_track("track-1", "http://server/1.mp3")
+
+    await service.play(
+        "device-1",
+        "192.0.2.10",
+        "server-1",
+        [track],
+        "track-1",
+    )
+    renderer.reset_mock()
+
+    await service.handle_transport_state("device-1", "PLAYING")
+    result = await service.handle_transport_state("device-1", "STOPPED")
+
+    assert result is None
+    renderer.play_uri.assert_not_awaited()

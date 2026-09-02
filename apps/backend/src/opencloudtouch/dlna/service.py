@@ -2,6 +2,7 @@
 
 from opencloudtouch.dlna.client import DlnaClient
 from opencloudtouch.dlna.discovery import DlnaDiscovery
+from opencloudtouch.dlna.events import DlnaEventSubscriptions
 from opencloudtouch.dlna.models import DlnaItem, DlnaServer
 from opencloudtouch.dlna.playback import DlnaPlaybackService
 
@@ -18,6 +19,7 @@ class DlnaService:
         self.discovery = discovery or DlnaDiscovery()
         self.client = client or DlnaClient()
         self.playback = playback or DlnaPlaybackService()
+        self.subscriptions = DlnaEventSubscriptions(self.playback.renderer)
 
     async def get_servers(self) -> list[DlnaServer]:
         """Discover available DLNA media servers."""
@@ -53,9 +55,17 @@ class DlnaService:
         server_id: str,
         parent_id: str,
         object_id: str,
+        callback_base_url: str,
     ) -> DlnaItem:
         """Play a DLNA item and create a queue from its parent container."""
         items = await self.browse(server_id, parent_id)
+
+        callback_url = f"{callback_base_url.rstrip('/')}/api/dlna/events/{device_id}"
+        await self.subscriptions.ensure(
+            device_id=device_id,
+            device_ip=device_ip,
+            callback_url=callback_url,
+        )
 
         return await self.playback.play(
             device_id=device_id,

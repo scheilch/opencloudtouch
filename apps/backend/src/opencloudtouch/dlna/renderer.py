@@ -31,6 +31,109 @@ class DlnaRenderer:
 """,
         )
 
+    async def subscribe(
+        self,
+        device_ip: str,
+        callback_url: str,
+        timeout_seconds: int = 300,
+    ) -> tuple[str, int]:
+        """Subscribe to AVTransport events from a SoundTouch device."""
+        url = f"http://{device_ip}:8091/AVTransport/Event"
+        headers = {
+            "CALLBACK": f"<{callback_url}>",
+            "NT": "upnp:event",
+            "TIMEOUT": f"Second-{timeout_seconds}",
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.request(
+                    "SUBSCRIBE",
+                    url,
+                    headers=headers,
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise DlnaRendererError(
+                "SoundTouch AVTransport subscription failed"
+            ) from exc
+
+        sid = response.headers.get("SID")
+        if not sid:
+            raise DlnaRendererError(
+                "SoundTouch AVTransport subscription returned no SID"
+            )
+
+        granted_timeout = self._parse_subscription_timeout(
+            response.headers.get("TIMEOUT"),
+            timeout_seconds,
+        )
+        return sid, granted_timeout
+
+    async def renew_subscription(
+        self,
+        device_ip: str,
+        sid: str,
+        timeout_seconds: int = 300,
+    ) -> tuple[str, int]:
+        """Renew an existing AVTransport event subscription."""
+        url = f"http://{device_ip}:8091/AVTransport/Event"
+        headers = {
+            "SID": sid,
+            "TIMEOUT": f"Second-{timeout_seconds}",
+        }
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.request(
+                    "SUBSCRIBE",
+                    url,
+                    headers=headers,
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise DlnaRendererError(
+                "SoundTouch AVTransport subscription renewal failed"
+            ) from exc
+
+        renewed_sid = response.headers.get("SID", sid)
+        granted_timeout = self._parse_subscription_timeout(
+            response.headers.get("TIMEOUT"),
+            timeout_seconds,
+        )
+        return renewed_sid, granted_timeout
+
+    async def unsubscribe(self, device_ip: str, sid: str) -> None:
+        """Cancel an AVTransport event subscription."""
+        url = f"http://{device_ip}:8091/AVTransport/Event"
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.request(
+                    "UNSUBSCRIBE",
+                    url,
+                    headers={"SID": sid},
+                )
+                response.raise_for_status()
+        except httpx.HTTPError as exc:
+            raise DlnaRendererError(
+                "SoundTouch AVTransport unsubscribe failed"
+            ) from exc
+
+    @staticmethod
+    def _parse_subscription_timeout(
+        value: str | None,
+        default: int,
+    ) -> int:
+        """Parse a UPnP TIMEOUT response header."""
+        if not value or not value.lower().startswith("second-"):
+            return default
+
+        try:
+            return int(value.split("-", 1)[1])
+        except ValueError:
+            return default
+
     async def pause(self, device_ip: str) -> None:
         """Pause current playback."""
         await self._send_action(

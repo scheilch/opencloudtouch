@@ -160,6 +160,11 @@ async def test_play_dlna_item(monkeypatch):
     service.play.return_value = item
 
     monkeypatch.setattr(routes, "_service", service)
+    monkeypatch.setattr(
+        routes,
+        "_get_callback_base_url",
+        lambda request, device_ip: "http://192.0.2.20:7778",
+    )
 
     class Device:
         ip = "192.168.1.10"
@@ -195,6 +200,7 @@ async def test_play_dlna_item(monkeypatch):
         server_id="server-1",
         parent_id="folder-1",
         object_id="track-1",
+        callback_base_url="http://192.0.2.20:7778",
     )
 
 
@@ -272,3 +278,53 @@ async def test_play_dlna_missing_device(monkeypatch):
         )
 
     assert exc_info.value.status_code == 404
+
+
+class MockNotifyRequest:
+    """Minimal request object for AVTransport NOTIFY tests."""
+
+    def __init__(self, body: bytes):
+        self._body = body
+
+    async def body(self) -> bytes:
+        return self._body
+
+
+@pytest.mark.asyncio
+async def test_avtransport_notify(monkeypatch):
+    service = AsyncMock()
+    service.playback.handle_transport_state = AsyncMock()
+    monkeypatch.setattr(routes, "_service", service)
+
+    body = b"""<?xml version="1.0"?>
+<e:propertyset xmlns:e="urn:schemas-upnp-org:event-1-0">
+  <e:property>
+    <LastChange>&lt;Event xmlns="urn:schemas-upnp-org:metadata-1-0/AVT/"&gt;&lt;InstanceID val="0"&gt;&lt;TransportState val="PLAYING"/&gt;&lt;/InstanceID&gt;&lt;/Event&gt;</LastChange>
+  </e:property>
+</e:propertyset>"""
+
+    response = await routes.dlna_avtransport_event(
+        MockNotifyRequest(body),
+        "device-1",
+    )
+
+    assert response.status_code == 200
+    service.playback.handle_transport_state.assert_awaited_once_with(
+        "device-1",
+        "PLAYING",
+    )
+
+
+@pytest.mark.asyncio
+async def test_avtransport_notify_ignores_malformed_xml(monkeypatch):
+    service = AsyncMock()
+    service.playback.handle_transport_state = AsyncMock()
+    monkeypatch.setattr(routes, "_service", service)
+
+    response = await routes.dlna_avtransport_event(
+        MockNotifyRequest(b"<not-valid"),
+        "device-1",
+    )
+
+    assert response.status_code == 200
+    service.playback.handle_transport_state.assert_not_awaited()
